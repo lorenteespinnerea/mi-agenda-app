@@ -1,27 +1,45 @@
-const CACHE_NAME = 'agenda-v1';
-const ASSETS = [
+// Nombre de la caché para tu aplicación
+const CACHE_NAME = 'agenda-app-v1';
+
+// Archivos básicos a guardar en la caché del dispositivo
+const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  './image_461b4b.jpg',
   './icon-192.png',
   './icon-512.png'
 ];
 
-// Instalación: Guarda los archivos en la caché del dispositivo
-self.addEventListener('install', (e) => {
-  e.waitUntil(
+// Evento de instalación: guarda los archivos en caché
+self.addEventListener('install', (event) => {
+  event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
+      console.log('Archivos guardados en caché con éxito');
+      return cache.addAll(ASSETS_TO_CACHE);
     })
   );
 });
 
-// Intercepción de red: Carga desde la caché si está disponible sin conexión
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
+// Evento de activación: limpia cachés antiguas si se actualiza la app
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
+});
+
+// Evento fetch: permite que la app funcione o responda peticiones
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      return cachedResponse || fetch(event.request);
     })
   );
 });
