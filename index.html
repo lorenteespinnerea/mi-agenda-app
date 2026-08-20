@@ -225,9 +225,11 @@
 
     .list-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.85rem; }
     .list-table tr { border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
-    .list-table td { padding: 5px 2px; }
+    .list-table td { padding: 5px 2px; vertical-align: middle; }
     .completed { text-decoration: line-through; opacity: 0.6; }
-    .btn-del { background: none; border: none; color: #A84242; cursor: pointer; font-weight: bold; }
+    .btn-del { background: none; border: none; color: #A84242; cursor: pointer; font-weight: bold; font-size: 0.9rem; padding: 0 4px; }
+    .btn-order { background: none; border: none; color: #6E5F54; cursor: pointer; font-weight: bold; font-size: 0.85rem; padding: 0 2px; }
+    .btn-order:hover { color: var(--accent-title); }
 
     .gala-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
     @media (min-width: 600px) { .gala-grid { grid-template-columns: 1fr 1fr; } }
@@ -237,7 +239,7 @@
 
     .habitos-table-container { overflow-x: auto; }
     .habitos-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    .habitos-table th, .habitos-table td { padding: 8px; text-align: center; }
+    .habitos-table th, .habitos-table td { padding: 8px; text-align: center; vertical-align: middle; }
     .habitos-table th { font-size: 0.9rem; border-bottom: 1px solid rgba(0,0,0,0.1); color: var(--accent-title); }
     .col-destacada { background-color: rgba(140, 122, 107, 0.2); font-weight: bold; border-radius: 6px; }
     .habitos-table td.habito-nombre { text-align: left; font-weight: 600; }
@@ -667,8 +669,23 @@
     function toggleEntrega(index) { 
       if (!datosAgenda.entregas) datosAgenda.entregas = [];
       datosAgenda.entregas[index].done = !datosAgenda.entregas[index].done; 
+      
+      // Movemos los completados al final automáticamente
+      datosAgenda.entregas.sort((a, b) => (a.done === b.done) ? 0 : a.done ? 1 : -1);
+
       guardarTodo(); 
       renderEntregas(); 
+    }
+
+    function moverEntrega(index, direccion) {
+      if (!datosAgenda.entregas) return;
+      const nuevoIndex = index + direccion;
+      if (nuevoIndex < 0 || nuevoIndex >= datosAgenda.entregas.length) return;
+      
+      const item = datosAgenda.entregas.splice(index, 1)[0];
+      datosAgenda.entregas.splice(nuevoIndex, 0, item);
+      guardarTodo();
+      renderEntregas();
     }
 
     function eliminarEntrega(index) { 
@@ -683,7 +700,15 @@
       tbody.innerHTML = '';
       if (!datosAgenda.entregas) datosAgenda.entregas = [];
       datosAgenda.entregas.forEach((entrega, index) => {
-        tbody.innerHTML += `<tr><td><input type="checkbox" ${entrega.done ? 'checked' : ''} onchange="toggleEntrega(${index})"></td><td class="${entrega.done ? 'completed' : ''}">${entrega.texto}</td><td style="text-align:right;"><button class="btn-del" onclick="eliminarEntrega(${index})">✕</button></td></tr>`;
+        tbody.innerHTML += `<tr>
+          <td style="width: 25px;"><input type="checkbox" ${entrega.done ? 'checked' : ''} onchange="toggleEntrega(${index})"></td>
+          <td class="${entrega.done ? 'completed' : ''}">${entrega.texto}</td>
+          <td style="text-align:right; white-space:nowrap;">
+            <button class="btn-order" onclick="moverEntrega(${index}, -1)">▲</button>
+            <button class="btn-order" onclick="moverEntrega(${index}, 1)">▼</button>
+            <button class="btn-del" onclick="eliminarEntrega(${index})">✕</button>
+          </td>
+        </tr>`;
       });
     }
 
@@ -700,8 +725,23 @@
     function toggleTarea(index) { 
       if (!datosAgenda.tareas) datosAgenda.tareas = [];
       datosAgenda.tareas[index].done = !datosAgenda.tareas[index].done; 
+
+      // Movemos los completados al final automáticamente
+      datosAgenda.tareas.sort((a, b) => (a.done === b.done) ? 0 : a.done ? 1 : -1);
+
       guardarTodo(); 
       renderTareas(); 
+    }
+
+    function moverTarea(index, direccion) {
+      if (!datosAgenda.tareas) return;
+      const nuevoIndex = index + direccion;
+      if (nuevoIndex < 0 || nuevoIndex >= datosAgenda.tareas.length) return;
+      
+      const item = datosAgenda.tareas.splice(index, 1)[0];
+      datosAgenda.tareas.splice(nuevoIndex, 0, item);
+      guardarTodo();
+      renderTareas();
     }
 
     function eliminarTarea(index) { 
@@ -716,7 +756,15 @@
       tbody.innerHTML = '';
       if (!datosAgenda.tareas) datosAgenda.tareas = [];
       datosAgenda.tareas.forEach((tarea, index) => {
-        tbody.innerHTML += `<tr><td><input type="checkbox" ${tarea.done ? 'checked' : ''} onchange="toggleTarea(${index})"></td><td class="${tarea.done ? 'completed' : ''}">${tarea.texto}</td><td style="text-align:right;"><button class="btn-del" onclick="eliminarTarea(${index})">✕</button></td></tr>`;
+        tbody.innerHTML += `<tr>
+          <td style="width: 25px;"><input type="checkbox" ${tarea.done ? 'checked' : ''} onchange="toggleTarea(${index})"></td>
+          <td class="${tarea.done ? 'completed' : ''}">${tarea.texto}</td>
+          <td style="text-align:right; white-space:nowrap;">
+            <button class="btn-order" onclick="moverTarea(${index}, -1)">▲</button>
+            <button class="btn-order" onclick="moverTarea(${index}, 1)">▼</button>
+            <button class="btn-del" onclick="eliminarTarea(${index})">✕</button>
+          </td>
+        </tr>`;
       });
     }
 
@@ -761,10 +809,19 @@
       renderHabitos();
     }
 
+    function moverHabito(index, direccion) {
+      const nuevoIndex = index + direccion;
+      if (nuevoIndex < 0 || nuevoIndex >= habitosSemanaActual.length) return;
+      
+      const item = habitosSemanaActual.splice(index, 1)[0];
+      habitosSemanaActual.splice(nuevoIndex, 0, item);
+      guardarTodo();
+      renderHabitos();
+    }
+
     function eliminarHabito(index) {
       habitosSemanaActual.splice(index, 1);
       
-      // Forzamos el guardado y la sincronización explícita en la nube para limpiar el array borrado
       localStorage.setItem('agenda_habitos_semana_' + obtenerLunesDeSemana(fechaActual), JSON.stringify(habitosSemanaActual));
       
       const pin = localStorage.getItem('agenda_pin_sync');
@@ -803,7 +860,11 @@
           </td>`;
         });
 
-        html += `<td><button class="btn-del" onclick="eliminarHabito(${hIndex})">✕</button></td>`;
+        html += `<td style="text-align:right; white-space:nowrap;">
+          <button class="btn-order" onclick="moverHabito(${hIndex}, -1)">▲</button>
+          <button class="btn-order" onclick="moverHabito(${hIndex}, 1)">▼</button>
+          <button class="btn-del" onclick="eliminarHabito(${hIndex})">✕</button>
+        </td>`;
         tr.innerHTML = html;
         tbody.appendChild(tr);
       });
