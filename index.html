@@ -458,17 +458,33 @@
       const fechaObj = new Date(fechaActual + 'T00:00:00');
       document.getElementById('fecha-texto').textContent = fechaObj.toLocaleDateString('es-ES', opciones);
     }
-
+/**
+     * Calcula de forma precisa el rango de 7 días (Lunes a Domingo) 
+     * correspondientes a la semana de la fecha seleccionada.
+     */
     function obtenerFechasSemanaActual() {
+      // Creamos la fecha base asegurando el formato local sin desfasaje de zona horaria
       const fechaObj = new Date(fechaActual + 'T00:00:00');
-      const diaSemana = getIndiceDiaSemana(fechaActual);
+      
+      // Obtener el día de la semana (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
+      const diaSemana = fechaObj.getDay();
+      
+      // Si es Domingo (0), debemos retroceder 6 días. Si es otro día, restamos (diaSemana - 1)
+      const diferenciaAlLunes = (diaSemana === 0) ? 6 : (diaSemana - 1);
+      
+      // Calculamos la fecha del Lunes exacto de esta semana
+      const lunes = new Date(fechaObj);
+      lunes.setDate(fechaObj.getDate() - diferenciaAlLunes);
+      
       const fechas = [];
-
+      
+      // Generamos los 7 días consecutivos a partir del Lunes
       for (let i = 0; i < 7; i++) {
-        const d = new Date(fechaObj);
-        d.setDate(fechaObj.getDate() - diaSemana + i);
+        const d = new Date(lunes);
+        d.setDate(lunes.getDate() + i);
         fechas.push(d.toISOString().split('T')[0]);
       }
+      
       return fechas;
     }
 
