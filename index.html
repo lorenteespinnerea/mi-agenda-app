@@ -25,6 +25,7 @@
       --card-citas: #E8D8CE;
       --card-entregas: #E5DAC8;
       --card-tareas: #F3E9D2;
+      --card-notas: #EAE3D2;
       --card-gala: #E6E2DD;
       --card-habitos: #DDE5DA;
       --highlight-day: #8C7A6B;
@@ -147,6 +148,7 @@
     @media (min-width: 768px) {
       .diario-grid { grid-template-columns: 1fr 1fr; }
       .gala-section { grid-column: 1 / -1; }
+      .notas-section { grid-column: 1 / -1; }
     }
 
     .semanal-grid {
@@ -198,6 +200,7 @@
     .citas-block { background-color: var(--card-citas); }
     .entregas-block { background-color: var(--card-entregas); }
     .tareas-block { background-color: var(--card-tareas); }
+    .notas-block { background-color: var(--card-notas); }
     .gala-block { background-color: var(--card-gala); }
     .habitos-block { background-color: var(--card-habitos); }
 
@@ -341,6 +344,11 @@
         <table class="list-table"><tbody id="tabla-tareas"></tbody></table>
       </section>
 
+      <section class="block notas-block notas-section">
+        <h2>📝 Notas Libres</h2>
+        <textarea id="notas-texto" rows="4" placeholder="Escribe aquí notas rápidas, ideas o recordatorios para este día..." oninput="guardarTodo()"></textarea>
+      </section>
+
       <section class="block gala-block gala-section">
         <h2>✨ Espacio de Gratitud (GALA)</h2>
         <div class="gala-grid">
@@ -452,7 +460,7 @@
     let modoVista = 'diaria';
     let anoCalendarioModal = new Date().getFullYear();
 
-    let datosAgenda = { citas: [], entregas: [], tareas: [], gala: { g: '', a1: '', l: '', a2: '' } };
+    let datosAgenda = { citas: [], entregas: [], tareas: [], notas: '', gala: { g: '', a1: '', l: '', a2: '' } };
     let habitosSemanaActual = [];
 
     const nombresDiasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -532,21 +540,24 @@
             citas: Array.isArray(parsed.citas) ? parsed.citas : [],
             entregas: Array.isArray(parsed.entregas) ? parsed.entregas : [],
             tareas: Array.isArray(parsed.tareas) ? parsed.tareas : [],
+            notas: typeof parsed.notas === 'string' ? parsed.notas : '',
             gala: (parsed.gala && typeof parsed.gala === 'object') ? parsed.gala : { g: '', a1: '', l: '', a2: '' }
           };
         } catch (e) {
           console.error("Error al parsear datos locales:", e);
         }
       }
-      return { citas: [], entregas: [], tareas: [], gala: { g: '', a1: '', l: '', a2: '' } };
+      return { citas: [], entregas: [], tareas: [], notas: '', gala: { g: '', a1: '', l: '', a2: '' } };
     }
 
     function guardarTodo() {
       if (!datosAgenda.citas) datosAgenda.citas = [];
       if (!datosAgenda.entregas) datosAgenda.entregas = [];
       if (!datosAgenda.tareas) datosAgenda.tareas = [];
+      if (typeof datosAgenda.notas !== 'string') datosAgenda.notas = '';
       if (!datosAgenda.gala) datosAgenda.gala = { g: '', a1: '', l: '', a2: '' };
 
+      datosAgenda.notas = document.getElementById('notas-texto').value;
       datosAgenda.gala = {
         g: document.getElementById('gala-g').value,
         a1: document.getElementById('gala-a1').value,
@@ -576,6 +587,7 @@
         habitosSemanaActual = [];
       }
 
+      document.getElementById('notas-texto').value = datosAgenda.notas || '';
       document.getElementById('gala-g').value = datosAgenda.gala.g || '';
       document.getElementById('gala-a1').value = datosAgenda.gala.a1 || '';
       document.getElementById('gala-l').value = datosAgenda.gala.l || '';
@@ -669,10 +681,7 @@
     function toggleEntrega(index) { 
       if (!datosAgenda.entregas) datosAgenda.entregas = [];
       datosAgenda.entregas[index].done = !datosAgenda.entregas[index].done; 
-      
-      // Movemos los completados al final automáticamente
       datosAgenda.entregas.sort((a, b) => (a.done === b.done) ? 0 : a.done ? 1 : -1);
-
       guardarTodo(); 
       renderEntregas(); 
     }
@@ -725,10 +734,7 @@
     function toggleTarea(index) { 
       if (!datosAgenda.tareas) datosAgenda.tareas = [];
       datosAgenda.tareas[index].done = !datosAgenda.tareas[index].done; 
-
-      // Movemos los completados al final automáticamente
       datosAgenda.tareas.sort((a, b) => (a.done === b.done) ? 0 : a.done ? 1 : -1);
-
       guardarTodo(); 
       renderTareas(); 
     }
