@@ -3,13 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Agenda Sincronizada</title>
-  
+  <title>Mi Agenda Personal Sincronizada</title>
+
+  <!-- Fuentes de Google -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 
   <style>
+    /* ==========================================
+       VARIABLES Y ESTILOS GENERALES
+       ========================================== */
     :root {
       --bg-paper: rgba(245, 239, 230, 0.96);
       --card-citas: #E8D8CE;
@@ -20,50 +24,65 @@
       --highlight-day: #8C7A6B;
       --text-main: #3D3332;
       --accent-title: #4A3E3D;
+      --border-soft: #D1C5B4;
+      --border-input: #D9CBBA;
       --font-main: 'Nunito', sans-serif;
       --font-title: 'Cormorant Garamond', serif;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-main); }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-main);
+    }
 
     body {
       background-color: #E5DAC8;
       color: var(--text-main);
-      padding: 15px;
+      padding: 20px;
       display: flex;
       justify-content: center;
+      align-items: flex-start;
       min-height: 100vh;
     }
 
     .agenda-paper {
       background-color: var(--bg-paper);
       width: 100%;
-      max-width: 1100px;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-      border: 1px solid #D1C5B4;
-      border-left: 12px solid #8C7A6B;
+      max-width: 1150px;
+      padding: 35px;
+      border-radius: 18px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+      border: 1px solid var(--border-soft);
+      border-left: 14px solid #8C7A6B;
+      position: relative;
     }
 
+    /* ==========================================
+       ENCABEZADO Y CONTROLES DE NAVEGACIÓN
+       ========================================== */
     header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
       border-bottom: 1px dashed #C2B4A3;
-      padding-bottom: 15px;
+      padding-bottom: 20px;
     }
 
     header h1 {
       font-family: var(--font-title);
-      font-size: 3rem;
+      font-size: 3.2rem;
+      font-weight: 700;
       color: var(--accent-title);
+      letter-spacing: 1px;
     }
 
     .fecha-destacada {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-weight: 600;
       color: #6E5F54;
-      margin-top: 5px;
+      margin-top: 6px;
+      text-transform: capitalize;
     }
 
     .header-controls {
@@ -72,67 +91,253 @@
       justify-content: space-between;
       align-items: center;
       gap: 15px;
-      margin-bottom: 25px;
-      background: rgba(229, 218, 200, 0.4);
-      padding: 12px 18px;
+      margin-bottom: 30px;
+      background: rgba(229, 218, 200, 0.45);
+      padding: 14px 20px;
       border-radius: 12px;
+      border: 1px solid var(--border-soft);
     }
 
     .btn-nav {
-      padding: 6px 14px;
+      padding: 8px 16px;
       border: 1px solid #C2B4A3;
-      background: #FFF;
+      background: #FFFFFF;
       color: var(--text-main);
       border-radius: 8px;
       cursor: pointer;
-      font-weight: bold;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
     }
 
-    .btn-today { background-color: #8C7A6B; color: #FFF; border: none; }
+    .btn-nav:hover {
+      background: #F0E6D8;
+      transform: translateY(-1px);
+    }
 
+    .btn-today {
+      background-color: #8C7A6B;
+      color: #FFFFFF;
+      border: none;
+    }
+
+    .btn-today:hover {
+      background-color: #756456;
+    }
+
+    /* ==========================================
+       GRID DE BLOQUES
+       ========================================== */
     .diario-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 20px;
-      margin-bottom: 30px;
+      gap: 25px;
+      margin-bottom: 25px;
     }
 
-    @media (min-width: 768px) {
-      .diario-grid { grid-template-columns: 1fr 1fr; }
+    @media (min-width: 850px) {
+      .diario-grid {
+        grid-template-columns: 1fr 1fr;
+      }
     }
 
-    .block { padding: 20px; border-radius: 14px; border: 1px solid rgba(0,0,0,0.04); }
-    .block h2 { font-family: var(--font-title); font-size: 2rem; margin-bottom: 12px; color: var(--accent-title); }
+    .block {
+      padding: 22px;
+      border-radius: 16px;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      transition: transform 0.2s ease;
+    }
+
+    .block h2 {
+      font-family: var(--font-title);
+      font-size: 2.2rem;
+      margin-bottom: 14px;
+      color: var(--accent-title);
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      padding-bottom: 6px;
+    }
+
     .citas-block { background-color: var(--card-citas); }
     .entregas-block { background-color: var(--card-entregas); }
     .tareas-block { background-color: var(--card-tareas); }
+    .habitos-block { background-color: var(--card-habitos); }
+    .calendario-block { background-color: var(--card-gala); }
 
-    input[type="text"], input[type="time"], input[type="date"], select {
-      width: 100%; padding: 7px 10px; border: 1px solid #D9CBBA; border-radius: 8px; margin-bottom: 6px;
+    /* ==========================================
+       FORMULARIOS Y TABLAS
+       ========================================== */
+    input[type="text"],
+    input[type="time"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border-input);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background-color: rgba(255, 255, 255, 0.85);
+      font-size: 0.95rem;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    input[type="text"]:focus,
+    input[type="time"]:focus,
+    input[type="date"]:focus,
+    select:focus {
+      border-color: #8C7A6B;
+      background-color: #FFFFFF;
     }
 
     button.btn-add {
-      padding: 6px 12px; border: 1px solid #C2B4A3; background-color: #FFFFFF;
-      color: var(--text-main); border-radius: 8px; cursor: pointer; font-weight: 600;
+      padding: 8px 16px;
+      border: 1px solid #C2B4A3;
+      background-color: #FFFFFF;
+      color: var(--text-main);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.88rem;
+      margin-top: 4px;
+      transition: background 0.2s;
     }
 
-    .list-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.85rem; }
-    .list-table td { padding: 5px 2px; }
-    .completed { text-decoration: line-through; opacity: 0.6; }
-    .btn-del { background: none; border: none; color: #A84242; cursor: pointer; font-weight: bold; }
+    button.btn-add:hover {
+      background-color: #F5EFE6;
+    }
 
+    .list-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 0.92rem;
+    }
+
+    .list-table tr {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .list-table td {
+      padding: 8px 4px;
+      vertical-align: middle;
+    }
+
+    .completed {
+      text-decoration: line-through;
+      opacity: 0.55;
+    }
+
+    .btn-del {
+      background: none;
+      border: none;
+      color: #A84242;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .btn-del:hover {
+      background-color: rgba(168, 66, 66, 0.1);
+    }
+
+    /* ==========================================
+       MINI CALENDARIO
+       ========================================== */
+    .mini-cal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .mini-cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+
+    .mini-cal-day-name {
+      font-weight: 700;
+      color: #6E5F54;
+      padding-bottom: 4px;
+    }
+
+    .mini-cal-day {
+      padding: 8px 4px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.45);
+      transition: all 0.2s ease;
+    }
+
+    .mini-cal-day:hover {
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    .mini-cal-day.active {
+      background: var(--highlight-day);
+      color: #FFFFFF;
+      font-weight: bold;
+    }
+
+    /* ==========================================
+       MODAL DE AJUSTES Y SINCRONIZACIÓN
+       ========================================== */
     .modal {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 100;
-    }
-    .modal-content {
-      background: #F5EFE6; padding: 25px; border-radius: 16px;
-      max-width: 550px; width: 90%; border: 2px solid #D1C5B4;
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(3px);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
     }
 
-    .ajustes-box { background: #FFF; border: 1px solid #D9CBBA; border-radius: 12px; padding: 15px; margin-top: 15px; }
-    .ajustes-box h3 { font-family: var(--font-title); font-size: 1.4rem; margin-bottom: 6px; color: var(--accent-title); }
-    .device-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #E5DAC8; }
+    .modal-content {
+      background: #F5EFE6;
+      padding: 30px;
+      border-radius: 18px;
+      max-width: 580px;
+      width: 92%;
+      border: 2px solid var(--border-soft);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+
+    .ajustes-box {
+      background: #FFFFFF;
+      border: 1px solid var(--border-input);
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 16px;
+    }
+
+    .ajustes-box h3 {
+      font-family: var(--font-title);
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      color: var(--accent-title);
+    }
+
+    .device-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #E5DAC8;
+    }
+
+    .device-item:last-child {
+      border-bottom: none;
+    }
   </style>
 </head>
 <body>
@@ -144,73 +349,114 @@
     </header>
 
     <div class="header-controls">
-      <div>
+      <div style="display: flex; align-items: center; gap: 8px;">
         <button class="btn-nav btn-today" onclick="irAHoy()">📍 Hoy</button>
-        <input type="date" id="selector-fecha" onchange="cambiarFecha(this.value)" style="margin-left:5px; margin-bottom:0; width:auto;">
+        <input type="date" id="selector-fecha" onchange="cambiarFecha(this.value)" style="margin-bottom:0; width:auto;">
       </div>
       <div>
         <button class="btn-nav" onclick="abrirAjustes()">⚙️ Ajustes y Sincronización</button>
       </div>
     </div>
 
+    <!-- SECCIÓN SUPERIOR: CITAS Y ENTREGAS -->
     <div class="diario-grid">
       <section class="block citas-block">
         <h2>📌 Citas del Día</h2>
-        <div style="display: flex; gap: 5px;">
-          <input type="time" id="cita-hora" style="width: 40%;">
-          <input type="text" id="cita-texto" placeholder="Detalle...">
+        <div style="display: flex; gap: 8px;">
+          <input type="time" id="cita-hora" style="width: 35%;">
+          <input type="text" id="cita-texto" placeholder="Descripción o lugar...">
         </div>
         <button class="btn-add" onclick="agregarCita()">Añadir Cita</button>
         <table class="list-table"><tbody id="tabla-citas"></tbody></table>
       </section>
 
+      <section class="block entregas-block">
+        <h2>📦 Entregas y Proyectos</h2>
+        <input type="text" id="entrega-texto" placeholder="Detalle de entrega o proyecto...">
+        <button class="btn-add" onclick="agregarEntrega()">Añadir Entrega</button>
+        <table class="list-table"><tbody id="tabla-entregas"></tbody></table>
+      </section>
+    </div>
+
+    <!-- SECCIÓN INFERIOR: TAREAS, HÁBITOS Y CALENDARIO -->
+    <div class="diario-grid">
       <section class="block tareas-block">
         <h2>✏️ Tareas Diarias</h2>
-        <input type="text" id="tarea-texto" placeholder="Nueva tarea...">
+        <input type="text" id="tarea-texto" placeholder="Escribe una nueva tarea...">
         <button class="btn-add" onclick="agregarTarea()">Añadir Tarea</button>
         <table class="list-table"><tbody id="tabla-tareas"></tbody></table>
       </section>
+
+      <div>
+        <section class="block habitos-block" style="margin-bottom: 25px;">
+          <h2>🌱 Hábitos y Rutinas</h2>
+          <input type="text" id="habito-texto" placeholder="Nuevo hábito a registrar...">
+          <button class="btn-add" onclick="agregarHabito()">Añadir Hábito</button>
+          <table class="list-table"><tbody id="tabla-habitos"></tbody></table>
+        </section>
+
+        <section class="block calendario-block">
+          <h2>🗓️ Vista Mensual</h2>
+          <div class="mini-cal-header">
+            <button class="btn-nav" onclick="cambiarMesCal(-1)">◀</button>
+            <span id="cal-mes-titulo" style="font-weight:bold; font-size: 1.1rem;"></span>
+            <button class="btn-nav" onclick="cambiarMesCal(1)">▶</button>
+          </div>
+          <div class="mini-cal-grid">
+            <div class="mini-cal-day-name">L</div>
+            <div class="mini-cal-day-name">M</div>
+            <div class="mini-cal-day-name">X</div>
+            <div class="mini-cal-day-name">J</div>
+            <div class="mini-cal-day-name">V</div>
+            <div class="mini-cal-day-name">S</div>
+            <div class="mini-cal-day-name">D</div>
+          </div>
+          <div class="mini-cal-grid" id="mini-cal-dias" style="margin-top: 5px;"></div>
+        </section>
+      </div>
     </div>
   </main>
 
-  <!-- MODAL DE AJUSTES -->
+  <!-- VENTANA MODAL DE CONFIGURACIÓN -->
   <div id="modal-ajustes" class="modal">
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 style="font-family: var(--font-title); font-size: 2rem;">Configuración</h2>
+        <h2 style="font-family: var(--font-title); font-size: 2.2rem; color: var(--accent-title);">Configuración</h2>
         <button class="btn-nav" onclick="cerrarAjustes()">✕ Cerrar</button>
       </div>
 
       <div class="ajustes-box">
         <h3>📱 Nombre de este Dispositivo</h3>
-        <div style="display:flex; gap: 8px; margin-top: 5px;">
-          <input type="text" id="input-nombre-dispositivo" placeholder="Ej. Mi Portátil, Móvil...">
+        <div style="display:flex; gap: 8px; margin-top: 6px;">
+          <input type="text" id="input-nombre-dispositivo" placeholder="Ej. Mi Portátil, Mi Móvil...">
           <button class="btn-nav btn-today" onclick="guardarNombreDispositivo()">Guardar</button>
         </div>
       </div>
 
       <div class="ajustes-box">
-        <h3>🔄 Sincronización</h3>
-        <button class="btn-nav btn-today" onclick="sincronizarManual()" style="margin-bottom:10px;">Sincronizar Ahora</button>
+        <h3>🔄 Sincronización Local</h3>
+        <button class="btn-nav btn-today" onclick="sincronizarManual()" style="margin-bottom:12px;">Sincronizar Ahora</button>
         <br>
-        <label style="font-size:0.85rem; font-weight:bold;">Sincronización Automática:</label>
+        <label style="font-size:0.9rem; font-weight:bold;">Sincronización Automática:</label>
         <select id="select-frecuencia" onchange="cambiarFrecuenciaSincronizacion(this.value)">
           <option value="0">Desactivada</option>
           <option value="1">Cada 1 minuto</option>
           <option value="5">Cada 5 minutos</option>
         </select>
-        <span id="status-sincro" style="font-size: 0.8rem; display:block; margin-top:5px; color:#6E5F54;"></span>
+        <span id="status-sincro" style="font-size: 0.85rem; display:block; margin-top:6px; color:#6E5F54;"></span>
       </div>
 
       <div class="ajustes-box">
         <h3>💻 Dispositivos Conectados</h3>
-        <div id="lista-dispositivos">Cargando...</div>
+        <div id="lista-dispositivos" style="margin-top:8px;">Cargando lista...</div>
       </div>
     </div>
   </div>
 
   <script>
-    // Dirección IP local de tu ordenador
+    /* ==========================================
+       CONFIGURACIÓN DE CONEXIÓN Y ESTADO GLOBAL
+       ========================================== */
     const API_URL = 'http://192.168.0.45:3000/api';
 
     function formatearFechaLocal(date) {
@@ -221,7 +467,8 @@
     }
 
     let fechaActual = formatearFechaLocal(new Date());
-    let datosAgenda = { citas: [], tareas: [] };
+    let fechaCalVista = new Date();
+    let datosAgenda = { citas: [], entregas: [], tareas: [], habitos: [] };
     let intervaloSincro = null;
 
     function obtenerDeviceId() {
@@ -233,8 +480,12 @@
       return id;
     }
 
+    /* ==========================================
+       NAVEGACIÓN DE FECHAS
+       ========================================== */
     function irAHoy() {
       fechaActual = formatearFechaLocal(new Date());
+      fechaCalVista = new Date();
       cambiarFecha(fechaActual);
     }
 
@@ -243,6 +494,7 @@
       document.getElementById('selector-fecha').value = fechaActual;
       actualizarTextoFecha();
       cargarTodo();
+      renderMiniCalendario();
     }
 
     function actualizarTextoFecha() {
@@ -253,7 +505,7 @@
 
     function cargarDatosFecha(fStr) {
       const guardado = localStorage.getItem('agenda_datos_' + fStr);
-      return guardado ? JSON.parse(guardado) : { citas: [], tareas: [] };
+      return guardado ? JSON.parse(guardado) : { citas: [], entregas: [], tareas: [], habitos: [] };
     }
 
     function guardarTodo() {
@@ -262,10 +514,20 @@
 
     function cargarTodo() {
       datosAgenda = cargarDatosFecha(fechaActual);
+      if (!datosAgenda.citas) datosAgenda.citas = [];
+      if (!datosAgenda.entregas) datosAgenda.entregas = [];
+      if (!datosAgenda.tareas) datosAgenda.tareas = [];
+      if (!datosAgenda.habitos) datosAgenda.habitos = [];
+      
       renderCitas();
+      renderEntregas();
       renderTareas();
+      renderHabitos();
     }
 
+    /* ==========================================
+       GESTIÓN DE CITAS
+       ========================================== */
     function agregarCita() {
       const hora = document.getElementById('cita-hora').value;
       const texto = document.getElementById('cita-texto').value.trim();
@@ -277,16 +539,65 @@
       renderCitas();
     }
 
-    function eliminarCita(index) { datosAgenda.citas.splice(index, 1); guardarTodo(); renderCitas(); }
+    function eliminarCita(i) {
+      datosAgenda.citas.splice(i, 1);
+      guardarTodo();
+      renderCitas();
+    }
 
     function renderCitas() {
       const tbody = document.getElementById('tabla-citas');
       tbody.innerHTML = '';
-      datosAgenda.citas.forEach((cita, index) => {
-        tbody.innerHTML += `<tr><td style="width:25%; font-weight:bold;">${cita.hora || '--:--'}</td><td>${cita.texto}</td><td style="text-align:right;"><button class="btn-del" onclick="eliminarCita(${index})">✕</button></td></tr>`;
+      datosAgenda.citas.forEach((c, i) => {
+        tbody.innerHTML += `
+          <tr>
+            <td style="width:25%; font-weight:bold; color: var(--accent-title);">${c.hora || '--:--'}</td>
+            <td>${c.texto}</td>
+            <td style="text-align:right;"><button class="btn-del" onclick="eliminarCita(${i})">✕</button></td>
+          </tr>`;
       });
     }
 
+    /* ==========================================
+       GESTIÓN DE ENTREGAS
+       ========================================== */
+    function agregarEntrega() {
+      const texto = document.getElementById('entrega-texto').value.trim();
+      if (!texto) return;
+      datosAgenda.entregas.push({ texto, done: false });
+      document.getElementById('entrega-texto').value = '';
+      guardarTodo();
+      renderEntregas();
+    }
+
+    function toggleEntrega(i) {
+      datosAgenda.entregas[i].done = !datosAgenda.entregas[i].done;
+      guardarTodo();
+      renderEntregas();
+    }
+
+    function eliminarEntrega(i) {
+      datosAgenda.entregas.splice(i, 1);
+      guardarTodo();
+      renderEntregas();
+    }
+
+    function renderEntregas() {
+      const tbody = document.getElementById('tabla-entregas');
+      tbody.innerHTML = '';
+      datosAgenda.entregas.forEach((e, i) => {
+        tbody.innerHTML += `
+          <tr>
+            <td style="width: 30px;"><input type="checkbox" ${e.done ? 'checked' : ''} onchange="toggleEntrega(${i})"></td>
+            <td class="${e.done ? 'completed' : ''}">${e.texto}</td>
+            <td style="text-align:right;"><button class="btn-del" onclick="eliminarEntrega(${i})">✕</button></td>
+          </tr>`;
+      });
+    }
+
+    /* ==========================================
+       GESTIÓN DE TAREAS
+       ========================================== */
     function agregarTarea() {
       const texto = document.getElementById('tarea-texto').value.trim();
       if (!texto) return;
@@ -296,23 +607,112 @@
       renderTareas();
     }
 
-    function toggleTarea(index) { datosAgenda.tareas[index].done = !datosAgenda.tareas[index].done; guardarTodo(); renderTareas(); }
-    function eliminarTarea(index) { datosAgenda.tareas.splice(index, 1); guardarTodo(); renderTareas(); }
+    function toggleTarea(i) {
+      datosAgenda.tareas[i].done = !datosAgenda.tareas[i].done;
+      guardarTodo();
+      renderTareas();
+    }
+
+    function eliminarTarea(i) {
+      datosAgenda.tareas.splice(i, 1);
+      guardarTodo();
+      renderTareas();
+    }
 
     function renderTareas() {
       const tbody = document.getElementById('tabla-tareas');
       tbody.innerHTML = '';
-      datosAgenda.tareas.forEach((tarea, index) => {
-        tbody.innerHTML += `<tr><td><input type="checkbox" ${tarea.done ? 'checked' : ''} onchange="toggleTarea(${index})"></td><td class="${tarea.done ? 'completed' : ''}">${tarea.texto}</td><td style="text-align:right;"><button class="btn-del" onclick="eliminarTarea(${index})">✕</button></td></tr>`;
+      datosAgenda.tareas.forEach((t, i) => {
+        tbody.innerHTML += `
+          <tr>
+            <td style="width: 30px;"><input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTarea(${i})"></td>
+            <td class="${t.done ? 'completed' : ''}">${t.texto}</td>
+            <td style="text-align:right;"><button class="btn-del" onclick="eliminarTarea(${i})">✕</button></td>
+          </tr>`;
       });
     }
 
-    /* CONEXIÓN CON SERVIDOR Y DISPOSITIVOS */
+    /* ==========================================
+       GESTIÓN DE HÁBITOS
+       ========================================== */
+    function agregarHabito() {
+      const texto = document.getElementById('habito-texto').value.trim();
+      if (!texto) return;
+      datosAgenda.habitos.push({ texto, done: false });
+      document.getElementById('habito-texto').value = '';
+      guardarTodo();
+      renderHabitos();
+    }
 
+    function toggleHabito(i) {
+      datosAgenda.habitos[i].done = !datosAgenda.habitos[i].done;
+      guardarTodo();
+      renderHabitos();
+    }
+
+    function eliminarHabito(i) {
+      datosAgenda.habitos.splice(i, 1);
+      guardarTodo();
+      renderHabitos();
+    }
+
+    function renderHabitos() {
+      const tbody = document.getElementById('tabla-habitos');
+      tbody.innerHTML = '';
+      datosAgenda.habitos.forEach((h, i) => {
+        tbody.innerHTML += `
+          <tr>
+            <td style="width: 30px;"><input type="checkbox" ${h.done ? 'checked' : ''} onchange="toggleHabito(${i})"></td>
+            <td class="${h.done ? 'completed' : ''}">${h.texto}</td>
+            <td style="text-align:right;"><button class="btn-del" onclick="eliminarHabito(${i})">✕</button></td>
+          </tr>`;
+      });
+    }
+
+    /* ==========================================
+       MINI CALENDARIO LÓGICA COMPLETA
+       ========================================== */
+    function cambiarMesCal(delta) {
+      fechaCalVista.setMonth(fechaCalVista.getMonth() + delta);
+      renderMiniCalendario();
+    }
+
+    function renderMiniCalendario() {
+      const contenedor = document.getElementById('mini-cal-dias');
+      const titulo = document.getElementById('cal-mes-titulo');
+      contenedor.innerHTML = '';
+
+      const año = fechaCalVista.getFullYear();
+      const mes = fechaCalVista.getMonth();
+
+      const nombreMes = fechaCalVista.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+      titulo.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
+
+      const primerDia = new Date(año, mes, 1).getDay();
+      const diasEnMes = new Date(año, mes + 1, 0).getDate();
+
+      const offset = (primerDia === 0) ? 6 : primerDia - 1;
+
+      for (let i = 0; i < offset; i++) {
+        contenedor.innerHTML += `<div></div>`;
+      }
+
+      for (let d = 1; d <= diasEnMes; d++) {
+        const dStr = String(d).padStart(2, '0');
+        const mStr = String(mes + 1).padStart(2, '0');
+        const fKey = `${año}-${mStr}-${dStr}`;
+        const esActivo = (fKey === fechaActual);
+
+        contenedor.innerHTML += `<div class="mini-cal-day ${esActivo ? 'active' : ''}" onclick="cambiarFecha('${fKey}')">${d}</div>`;
+      }
+    }
+
+    /* ==========================================
+       SINCRONIZACIÓN Y SERVIDOR NODE.JS
+       ========================================== */
     async function registrarDispositivo(nombreCustom) {
       const idDispositivo = obtenerDeviceId();
       const nombre = nombreCustom || localStorage.getItem('agenda_device_name') || 'Navegador Web';
-
       try {
         await fetch(`${API_URL}/dispositivos/registrar`, {
           method: 'POST',
@@ -321,38 +721,34 @@
         });
         localStorage.setItem('agenda_device_name', nombre);
       } catch (e) {
-        console.warn('Servidor local no detectado.');
+        console.warn('Servidor offline o no alcanzable');
       }
     }
 
     async function guardarNombreDispositivo() {
-      const nuevoNombre = document.getElementById('input-nombre-dispositivo').value.trim();
-      if (!nuevoNombre) return;
-      await registrarDispositivo(nuevoNombre);
-      alert('Nombre guardado');
+      const n = document.getElementById('input-nombre-dispositivo').value.trim();
+      if (!n) return;
+      await registrarDispositivo(n);
+      alert('Nombre de dispositivo actualizado');
       cargarListaDispositivos();
     }
 
     async function cargarListaDispositivos() {
       const contenedor = document.getElementById('lista-dispositivos');
       const miDeviceId = obtenerDeviceId();
-
       try {
         const res = await fetch(`${API_URL}/dispositivos`);
         const dispositivos = await res.json();
-
         contenedor.innerHTML = '';
         dispositivos.forEach(d => {
-          const esEste = (d.id === miDeviceId);
           contenedor.innerHTML += `
             <div class="device-item">
-              <div><strong>${d.nombre}</strong> ${esEste ? '(Este)' : ''}</div>
+              <div><strong>${d.nombre}</strong> ${d.id === miDeviceId ? '(Este dispositivo)' : ''}</div>
               <button class="btn-del" onclick="desconectarDispositivo('${d.id}')">Desconectar</button>
-            </div>
-          `;
+            </div>`;
         });
       } catch (e) {
-        contenedor.innerHTML = '<i>No se pudo conectar al servidor local.</i>';
+        contenedor.innerHTML = '<i>Servidor local desconectado.</i>';
       }
     }
 
@@ -384,7 +780,7 @@
           body: JSON.stringify(datosLocales)
         });
 
-        if (!resSubida.ok) throw new Error('Dispositivo no autorizado');
+        if (!resSubida.ok) throw new Error('Dispositivo no registrado');
 
         const resBajada = await fetch(`${API_URL}/sincronizar/${idDispositivo}`);
         const datosServidor = await resBajada.json();
@@ -392,9 +788,9 @@
         Object.keys(datosServidor).forEach(k => localStorage.setItem(k, datosServidor[k]));
 
         cargarTodo();
-        statusSpan.textContent = 'Última sincro: ' + new Date().toLocaleTimeString();
+        statusSpan.textContent = 'Última sincronización: ' + new Date().toLocaleTimeString();
       } catch (e) {
-        statusSpan.textContent = 'Error: ' + e.message;
+        statusSpan.textContent = 'Error de conexión con el servidor local';
       }
     }
 
@@ -410,13 +806,17 @@
       document.getElementById('modal-ajustes').style.display = 'flex';
     }
 
-    function cerrarAjustes() { document.getElementById('modal-ajustes').style.display = 'none'; }
+    function cerrarAjustes() {
+      document.getElementById('modal-ajustes').style.display = 'none';
+    }
 
+    /* INICIALIZACIÓN DE LA APLICACIÓN */
     window.onload = async function() {
       document.getElementById('selector-fecha').value = fechaActual;
       actualizarTextoFecha();
       await registrarDispositivo();
       cargarTodo();
+      renderMiniCalendario();
     };
   </script>
 </body>
