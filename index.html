@@ -357,7 +357,7 @@
     <section class="block habitos-block">
       <h2>🌿 Registro de Hábitos Semanal</h2>
       <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-        <input type="text" id="habito-texto" placeholder="Añadir nuevo hábito...">
+        <input type="text" id="habito-texto" placeholder="Añadir nuevo hábito para esta semana...">
         <button class="btn-add" onclick="agregarHabito()">Crear Hábito</button>
       </div>
 
@@ -425,13 +425,26 @@
     let anoCalendarioModal = new Date().getFullYear();
 
     let datosAgenda = { citas: [], entregas: [], tareas: [], gala: { g: '', a1: '', l: '', a2: '' } };
-    let habitosGlobales = [];
+    let habitosSemanaActual = [];
 
     const nombresDiasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
     function getIndiceDiaSemana(fechaStr) {
       const diaObj = new Date(fechaStr + 'T00:00:00').getDay();
       return (diaObj === 0) ? 6 : diaObj - 1;
+    }
+
+    /**
+     * Retorna la fecha del Lunes correspondiente a la fecha dada en formato YYYY-MM-DD.
+     * Esto sirve como identificador único de la semana para guardar los hábitos.
+     */
+    function obtenerLunesDeSemana(fechaStr) {
+      const fechaObj = new Date(fechaStr + 'T00:00:00');
+      const diaSemana = fechaObj.getDay();
+      const diferenciaAlLunes = (diaSemana === 0) ? 6 : (diaSemana - 1);
+      const lunes = new Date(fechaObj);
+      lunes.setDate(fechaObj.getDate() - diferenciaAlLunes);
+      return formatearFechaLocal(lunes);
     }
 
     function irAHoy() {
@@ -470,32 +483,20 @@
       document.getElementById('fecha-texto').textContent = fechaObj.toLocaleDateString('es-ES', opciones);
     }
 
-    /**
-     * Calcula de forma precisa el rango de 7 días (Lunes a Domingo) 
-     * correspondientes a la semana de la fecha seleccionada sin usar UTC.
-     */
     function obtenerFechasSemanaActual() {
       const fechaObj = new Date(fechaActual + 'T00:00:00');
-      
-      // Obtener el día de la semana (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
       const diaSemana = fechaObj.getDay();
-      
-      // Si es Domingo (0), debemos retroceder 6 días. Si es otro día, restamos (diaSemana - 1)
       const diferenciaAlLunes = (diaSemana === 0) ? 6 : (diaSemana - 1);
       
-      // Calculamos la fecha del Lunes exacto de esta semana
       const lunes = new Date(fechaObj);
       lunes.setDate(fechaObj.getDate() - diferenciaAlLunes);
       
       const fechas = [];
-      
-      // Generamos los 7 días consecutivos a partir del Lunes
       for (let i = 0; i < 7; i++) {
         const d = new Date(lunes);
         d.setDate(lunes.getDate() + i);
         fechas.push(formatearFechaLocal(d));
       }
-      
       return fechas;
     }
 
@@ -512,14 +513,25 @@
         a2: document.getElementById('gala-a2').value
       };
       localStorage.setItem('agenda_datos_' + fechaActual, JSON.stringify(datosAgenda));
-      localStorage.setItem('agenda_habitos_globales', JSON.stringify(habitosGlobales));
+
+      // Guardar hábitos aislados para la semana actual usando la fecha de su Lunes
+      const claveSemana = 'agenda_habitos_semana_' + obtenerLunesDeSemana(fechaActual);
+      localStorage.setItem(claveSemana, JSON.stringify(habitosSemanaActual));
     }
 
     function cargarTodo() {
       datosAgenda = cargarDatosFecha(fechaActual);
 
-      const habitosGuardados = localStorage.getItem('agenda_habitos_globales');
-      if (habitosGuardados) habitosGlobales = JSON.parse(habitosGuardados);
+      // Cargar hábitos específicos de la semana correspondiente a fechaActual
+      const claveSemana = 'agenda_habitos_semana_' + obtenerLunesDeSemana(fechaActual);
+      const habitosGuardados = localStorage.getItem(claveSemana);
+      
+      if (habitosGuardados) {
+        habitosSemanaActual = JSON.parse(habitosGuardados);
+      } else {
+        // Si no existen hábitos guardados para esta semana, se inicia vacía
+        habitosSemanaActual = [];
+      }
 
       document.getElementById('gala-g').value = datosAgenda.gala.g || '';
       document.getElementById('gala-a1').value = datosAgenda.gala.a1 || '';
@@ -622,22 +634,27 @@
       });
     }
 
+    /* LÓGICA DE HÁBITOS SEMANALES INDEPENDIENTES */
     function agregarHabito() {
       const texto = document.getElementById('habito-texto').value.trim();
       if (!texto) return;
-      habitosGlobales.push({ texto, dias: [false, false, false, false, false, false, false] });
+      habitosSemanaActual.push({ texto, dias: [false, false, false, false, false, false, false] });
       document.getElementById('habito-texto').value = '';
       guardarTodo();
       renderHabitos();
     }
 
     function toggleHabitoDia(habitoIndex, diaIndex) {
-      habitosGlobales[habitoIndex].dias[diaIndex] = !habitosGlobales[habitoIndex].dias[diaIndex];
+      habitosSemanaActual[habitoIndex].dias[diaIndex] = !habitosSemanaActual[habitoIndex].dias[diaIndex];
       guardarTodo();
       renderHabitos();
     }
 
-    function eliminarHabito(index) { habitosGlobales.splice(index, 1); guardarTodo(); renderHabitos(); }
+    function eliminarHabito(index) {
+      habitosSemanaActual.splice(index, 1);
+      guardarTodo();
+      renderHabitos();
+    }
 
     function renderHabitos() {
       const thead = document.getElementById('cabecera-habitos');
@@ -655,7 +672,7 @@
       headerHtml += `<th></th></tr>`;
       thead.innerHTML = headerHtml;
 
-      habitosGlobales.forEach((habito, hIndex) => {
+      habitosSemanaActual.forEach((habito, hIndex) => {
         const tr = document.createElement('tr');
         let html = `<td class="habito-nombre">${habito.texto}</td>`;
 
