@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mi Agenda Aesthetic Beige & Botánica</title>
   
-  <!-- Configuración PWA e Instalación -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#8C7A6B">
   <meta name="mobile-web-app-capable" content="yes">
@@ -17,24 +16,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Librerías Firebase SDK (Módulos de Compatibilidad para PWA fácil) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
   <style>
     :root {
-      /* Paleta cálida beige y tierra */
       --bg-paper: rgba(245, 239, 230, 0.96);
       --card-citas: #E8D8CE;
       --card-entregas: #E5DAC8;
       --card-tareas: #F3E9D2;
       --card-gala: #E6E2DD;
       --card-habitos: #DDE5DA;
-      
       --highlight-day: #8C7A6B;
       --text-main: #3D3332;
       --accent-title: #4A3E3D;
-      
       --font-main: 'Nunito', sans-serif;
       --font-title: 'Cormorant Garamond', serif;
     }
@@ -142,7 +137,6 @@
       color: #FFF;
     }
 
-    /* VISTA DIARIA GRID */
     .diario-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -155,7 +149,6 @@
       .gala-section { grid-column: 1 / -1; }
     }
 
-    /* VISTA SEMANAL GRID */
     .semanal-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -193,7 +186,6 @@
     .sub-citas { background-color: var(--card-citas); }
     .sub-entregas { background-color: var(--card-entregas); }
     .sub-tareas { background-color: var(--card-tareas); }
-
     .sub-block h4 { font-size: 0.85rem; margin-bottom: 4px; color: var(--accent-title); }
 
     .block {
@@ -251,7 +243,6 @@
     .habitos-table td.habito-nombre { text-align: left; font-weight: 600; }
     .habitos-table input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #8C7A6B; }
 
-    /* MODALES GENERALES */
     .modal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 100;
@@ -267,7 +258,6 @@
     .mes-table td { padding: 4px; cursor: pointer; }
     .mes-table td:hover { background-color: var(--card-citas); border-radius: 50%; }
 
-    /* Estilos para el panel de ajustes */
     .ajustes-box {
       background: #FFF;
       border: 1px solid #D9CBBA;
@@ -324,7 +314,6 @@
       </div>
     </div>
 
-    <!-- CONTENEDOR DE VISTA DIARIA -->
     <div id="vista-diaria-container" class="diario-grid">
       <section class="block citas-block">
         <h2>📌 Citas del Día</h2>
@@ -361,12 +350,10 @@
       </section>
     </div>
 
-    <!-- CONTENEDOR DE VISTA SEMANAL -->
     <div id="vista-semanal-container" class="semanal-grid" style="display: none;"></div>
 
     <div class="semana-divider"></div>
 
-    <!-- SECCIÓN ÚNICA DE HÁBITOS SEMANALES -->
     <section class="block habitos-block">
       <h2>🌿 Registro de Hábitos Semanal</h2>
       <div style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -383,7 +370,6 @@
     </section>
   </main>
 
-  <!-- MODAL CALENDARIO ANUAL -->
   <div id="modal-anual" class="modal">
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -398,7 +384,6 @@
     </div>
   </div>
 
-  <!-- MODAL DE AJUSTES Y SEGURIDAD -->
   <div id="modal-ajustes" class="modal">
     <div class="modal-content" style="max-width: 500px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
@@ -406,7 +391,6 @@
         <button class="btn-nav" onclick="cerrarAjustes()">✕ Cerrar</button>
       </div>
 
-      <!-- SECCIÓN DE SINCRONIZACIÓN CON PIN -->
       <div class="ajustes-box">
         <h3>🔄 Sincronización en la Nube</h3>
         <p><span id="sync-dot" class="status-sync"></span><span id="sync-text">Sin PIN asignado</span></p>
@@ -431,9 +415,6 @@
   </div>
 
   <script>
-    /* ========================================================
-       CONFIGURACIÓN DE FIREBASE (Conectada a tu proyecto)
-       ======================================================== */
     const firebaseConfig = {
       apiKey: "AIzaSyCW7shWbbieZdt7AV_aRSf_h5nLarpIr9U",
       authDomain: "mi-agenda-c064d.firebaseapp.com",
@@ -447,9 +428,15 @@
     let db = null;
     let listenerRef = null;
 
-    if (firebaseConfig.apiKey) {
-      firebase.initializeApp(firebaseConfig);
-      db = firebase.database();
+    try {
+      if (firebaseConfig.apiKey && !firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+      } else if (firebase.apps.length) {
+        db = firebase.database();
+      }
+    } catch (e) {
+      console.error("Error al inicializar Firebase:", e);
     }
 
     function formatearFechaLocal(date) {
@@ -522,7 +509,6 @@
       const fechaObj = new Date(fechaActual + 'T00:00:00');
       const diaSemana = fechaObj.getDay();
       const diferenciaAlLunes = (diaSemana === 0) ? 6 : (diaSemana - 1);
-      
       const lunes = new Date(fechaObj);
       lunes.setDate(fechaObj.getDate() - diferenciaAlLunes);
       
@@ -548,25 +534,21 @@
         a2: document.getElementById('gala-a2').value
       };
       
-      // 1. Guardar localmente
       localStorage.setItem('agenda_datos_' + fechaActual, JSON.stringify(datosAgenda));
       const claveSemana = 'agenda_habitos_semana_' + obtenerLunesDeSemana(fechaActual);
       localStorage.setItem(claveSemana, JSON.stringify(habitosSemanaActual));
 
-      // 2. Guardar en la nube si hay PIN
       const pin = localStorage.getItem('agenda_pin_sync');
       if (db && pin) {
-        db.ref('agendas/' + pin + '/agenda_datos_' + fechaActual).set(datosAgenda);
-        db.ref('agendas/' + pin + '/' + claveSemana).set(habitosSemanaActual);
+        db.ref('agendas/' + pin + '/agenda_datos_' + fechaActual).set(datosAgenda).catch(err => console.error("Error al sincronizar datos:", err));
+        db.ref('agendas/' + pin + '/' + claveSemana).set(habitosSemanaActual).catch(err => console.error("Error al sincronizar hábitos:", err));
       }
     }
 
     function cargarTodo() {
       datosAgenda = cargarDatosFecha(fechaActual);
-
       const claveSemana = 'agenda_habitos_semana_' + obtenerLunesDeSemana(fechaActual);
       const habitosGuardados = localStorage.getItem(claveSemana);
-      
       habitosSemanaActual = habitosGuardados ? JSON.parse(habitosGuardados) : [];
 
       document.getElementById('gala-g').value = datosAgenda.gala.g || '';
@@ -580,7 +562,6 @@
       renderHabitos();
     }
 
-    /* LÓGICA DE SINCRONIZACIÓN POR PIN */
     function guardarPinSync() {
       const pin = document.getElementById('pin-sincronizacion').value.trim();
       if (!pin) return;
@@ -615,6 +596,9 @@
           });
           cargarTodo();
         }
+      }, (error) => {
+        console.warn("Aviso de Firebase (comprueba tus reglas de seguridad):", error);
+        if (text) text.textContent = "Error de permisos en la nube";
       });
     }
 
@@ -683,7 +667,6 @@
     function renderVistaSemanal() {
       const container = document.getElementById('vista-semanal-container');
       container.innerHTML = '';
-
       const fechasSemana = obtenerFechasSemanaActual();
 
       fechasSemana.forEach((fStr, idx) => {
@@ -703,7 +686,6 @@
           <div class="sub-block sub-entregas"><h4>📦 Entregas</h4>${entregasHtml}</div>
           <div class="sub-block sub-tareas"><h4>✏️ Tareas</h4>${tareasHtml}</div>
         `;
-
         container.appendChild(card);
       });
     }
@@ -826,7 +808,6 @@
     }
 
     function cerrarCalendarioAnual() { document.getElementById('modal-anual').style.display = 'none'; }
-
     function abrirAjustes() { document.getElementById('modal-ajustes').style.display = 'flex'; }
     function cerrarAjustes() { document.getElementById('modal-ajustes').style.display = 'none'; }
 
@@ -838,10 +819,7 @@
           todoElStorage[clave] = localStorage.getItem(clave);
         }
       }
-
       const blob = new Blob([JSON.stringify(todoElStorage, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(url); // O URL.createObjectURL(blob)
-      // Ajuste limpio para evitar fallos en descarga:
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = blobUrl;
@@ -857,7 +835,6 @@
         alert('Por favor, selecciona un archivo .json de copia de seguridad.');
         return;
       }
-
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
@@ -885,7 +862,6 @@
     };
   </script>
 
-  <!-- Registro del Service Worker para la PWA -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
