@@ -17,6 +17,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 
+  <!-- Librerías Firebase SDK (Módulos de Compatibilidad para PWA fácil) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
   <style>
     :root {
       /* Paleta cálida beige y tierra */
@@ -282,6 +286,15 @@
       margin-bottom: 12px;
       color: #6E5F54;
     }
+    .status-sync {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #CCC;
+      margin-right: 6px;
+    }
+    .status-sync.active { background-color: #558B2F; }
   </style>
 </head>
 <body>
@@ -393,6 +406,15 @@
         <button class="btn-nav" onclick="cerrarAjustes()">✕ Cerrar</button>
       </div>
 
+      <!-- SECCIÓN DE SINCRONIZACIÓN CON PIN -->
+      <div class="ajustes-box">
+        <h3>🔄 Sincronización en la Nube</h3>
+        <p><span id="sync-dot" class="status-sync"></span><span id="sync-text">Sin PIN asignado</span></p>
+        <p>Escribe una clave o PIN personal. Usa exactamente la misma clave en tu móvil y portátil para compartir tus datos.</p>
+        <input type="text" id="pin-sincronizacion" placeholder="Ejemplo: mi-agenda-2026" style="margin-bottom: 8px;">
+        <button class="btn-nav btn-today" onclick="guardarPinSync()">Conectar PIN</button>
+      </div>
+
       <div class="ajustes-box">
         <h3>💾 Copia de Seguridad</h3>
         <p>Descarga un archivo con toda tu información registrada para guardar una copia de respaldo.</p>
@@ -409,10 +431,27 @@
   </div>
 
   <script>
-    /**
-     * Helper para formatear cualquier objeto Date a la cadena 'YYYY-MM-DD' 
-     * en hora local, evitando desfasajes de zona horaria (UTC).
-     */
+    /* ========================================================
+       CONFIGURACIÓN DE FIREBASE (Conectada a tu proyecto)
+       ======================================================== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyCW7shWbbieZdt7AV_aRSf_h5nLarpIr9U",
+      authDomain: "mi-agenda-c064d.firebaseapp.com",
+      databaseURL: "https://mi-agenda-c064d-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "mi-agenda-c064d",
+      storageBucket: "mi-agenda-c064d.firebasestorage.app",
+      messagingSenderId: "711039040706",
+      appId: "1:711039040706:web:6c417176d5ae0487afcf5b"
+    };
+
+    let db = null;
+    let listenerRef = null;
+
+    if (firebaseConfig.apiKey) {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+    }
+
     function formatearFechaLocal(date) {
       const año = date.getFullYear();
       const mes = String(date.getMonth() + 1).padStart(2, '0');
@@ -434,10 +473,6 @@
       return (diaObj === 0) ? 6 : diaObj - 1;
     }
 
-    /**
-     * Retorna la fecha del Lunes correspondiente a la fecha dada en formato YYYY-MM-DD.
-     * Esto sirve como identificador único de la semana para guardar los hábitos.
-     */
     function obtenerLunesDeSemana(fechaStr) {
       const fechaObj = new Date(fechaStr + 'T00:00:00');
       const diaSemana = fechaObj.getDay();
@@ -512,26 +547,27 @@
         l: document.getElementById('gala-l').value,
         a2: document.getElementById('gala-a2').value
       };
+      
+      // 1. Guardar localmente
       localStorage.setItem('agenda_datos_' + fechaActual, JSON.stringify(datosAgenda));
-
-      // Guardar hábitos aislados para la semana actual usando la fecha de su Lunes
       const claveSemana = 'agenda_habitos_semana_' + obtenerLunesDeSemana(fechaActual);
       localStorage.setItem(claveSemana, JSON.stringify(habitosSemanaActual));
+
+      // 2. Guardar en la nube si hay PIN
+      const pin = localStorage.getItem('agenda_pin_sync');
+      if (db && pin) {
+        db.ref('agendas/' + pin + '/agenda_datos_' + fechaActual).set(datosAgenda);
+        db.ref('agendas/' + pin + '/' + claveSemana).set(habitosSemanaActual);
+      }
     }
 
     function cargarTodo() {
       datosAgenda = cargarDatosFecha(fechaActual);
 
-      // Cargar hábitos específicos de la semana correspondiente a fechaActual
       const claveSemana = 'agenda_habitos_semana_' + obtenerLunesDeSemana(fechaActual);
       const habitosGuardados = localStorage.getItem(claveSemana);
       
-      if (habitosGuardados) {
-        habitosSemanaActual = JSON.parse(habitosGuardados);
-      } else {
-        // Si no existen hábitos guardados para esta semana, se inicia vacía
-        habitosSemanaActual = [];
-      }
+      habitosSemanaActual = habitosGuardados ? JSON.parse(habitosGuardados) : [];
 
       document.getElementById('gala-g').value = datosAgenda.gala.g || '';
       document.getElementById('gala-a1').value = datosAgenda.gala.a1 || '';
@@ -542,6 +578,44 @@
       renderEntregas();
       renderTareas();
       renderHabitos();
+    }
+
+    /* LÓGICA DE SINCRONIZACIÓN POR PIN */
+    function guardarPinSync() {
+      const pin = document.getElementById('pin-sincronizacion').value.trim();
+      if (!pin) return;
+      localStorage.setItem('agenda_pin_sync', pin);
+      iniciarEscuchadorFirebase();
+      alert('PIN registrado con éxito.');
+    }
+
+    function iniciarEscuchadorFirebase() {
+      const pin = localStorage.getItem('agenda_pin_sync');
+      const dot = document.getElementById('sync-dot');
+      const text = document.getElementById('sync-text');
+
+      if (!db || !pin) {
+        if (dot) dot.classList.remove('active');
+        if (text) text.textContent = "Sin PIN asignado";
+        return;
+      }
+
+      document.getElementById('pin-sincronizacion').value = pin;
+      if (dot) dot.classList.add('active');
+      if (text) text.textContent = `Sincronizado (PIN: ${pin})`;
+
+      if (listenerRef) listenerRef.off();
+
+      listenerRef = db.ref('agendas/' + pin);
+      listenerRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          Object.keys(data).forEach(key => {
+            localStorage.setItem(key, JSON.stringify(data[key]));
+          });
+          cargarTodo();
+        }
+      });
     }
 
     function agregarCita() {
@@ -634,7 +708,6 @@
       });
     }
 
-    /* LÓGICA DE HÁBITOS SEMANALES INDEPENDIENTES */
     function agregarHabito() {
       const texto = document.getElementById('habito-texto').value.trim();
       if (!texto) return;
@@ -712,7 +785,6 @@
       contenedor.innerHTML = html;
     }
 
-    /* LÓGICA DE NAVEGACIÓN ANUAL */
     function abrirCalendarioAnual() {
       anoCalendarioModal = new Date(fechaActual + 'T00:00:00').getFullYear();
       renderGridAnual();
@@ -755,7 +827,6 @@
 
     function cerrarCalendarioAnual() { document.getElementById('modal-anual').style.display = 'none'; }
 
-    /* LÓGICA DE AJUSTES Y SEGURIDAD */
     function abrirAjustes() { document.getElementById('modal-ajustes').style.display = 'flex'; }
     function cerrarAjustes() { document.getElementById('modal-ajustes').style.display = 'none'; }
 
@@ -769,12 +840,14 @@
       }
 
       const blob = new Blob([JSON.stringify(todoElStorage, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(url); // O URL.createObjectURL(blob)
+      // Ajuste limpio para evitar fallos en descarga:
+      const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = blobUrl;
       a.download = `Copia_Seguridad_Agenda_${formatearFechaLocal(new Date())}.json`;
       a.click();
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(blobUrl);
     }
 
     function importarDatos() {
@@ -790,11 +863,12 @@
         try {
           const datos = JSON.parse(e.target.result);
           Object.keys(datos).forEach(key => {
-            localStorage.setItem(key, datos[key]);
+            localStorage.setItem(key, typeof datos[key] === 'object' ? JSON.stringify(datos[key]) : datos[key]);
           });
           alert('¡Datos restaurados con éxito!');
           cerrarAjustes();
           cargarTodo();
+          guardarTodo();
         } catch (error) {
           alert('Error al leer el archivo. Asegúrate de que sea un archivo .json válido.');
         }
@@ -807,6 +881,7 @@
       actualizarTextoFecha();
       cargarTodo();
       renderMiniCalendario();
+      iniciarEscuchadorFirebase();
     };
   </script>
 
