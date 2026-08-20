@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Agenda Aesthetic Beige & Botánica</title>
+  
+  <!-- Configuración PWA e Instalación -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#8C7A6B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Agenda">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* Paleta cálida beige y tierra */
+      --bg-paper: rgba(245, 239, 230, 0.96);
+      --card-citas: #E8D8CE;
+      --card-entregas: #E5DAC8;
+      --card-tareas: #F3E9D2;
+      --card-gala: #E6E2DD;
+      --card-habitos: #DDE5DA;
+      
+      --highlight-day: #8C7A6B;
+      --text-main: #3D3332;
+      --accent-title: #4A3E3D;
+      
+      --font-main: 'Nunito', sans-serif;
+      --font-title: 'Cormorant Garamond', serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-main); }
+
+    body {
+      background-image: url('image_461b4b.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      color: var(--text-main);
+      padding: 15px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .agenda-paper {
+      background-color: var(--bg-paper);
+      width: 100%;
+      max-width: 1100px;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+      border: 1px solid #D1C5B4;
+      border-left: 12px solid #8C7A6B;
+      backdrop-filter: blur(4px);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 1px dashed #C2B4A3;
+      padding-bottom: 15px;
+    }
+
+    header h1 {
+      font-family: var(--font-title);
+      font-size: 3.2rem;
+      letter-spacing: 2px;
+      color: var(--accent-title);
+      text-transform: uppercase;
+    }
+
+    .fecha-destacada {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #6E5F54;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    .header-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 25px;
+      background: rgba(229, 218, 200, 0.4);
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: 1px solid #D9CBBA;
+    }
+
+    .mini-calendar table { border-collapse: collapse; font-size: 0.75rem; text-align: center; }
+    .mini-calendar th, .mini-calendar td { padding: 3px 5px; }
+    .mini-calendar td.selected-day {
+      background-color: var(--highlight-day);
+      color: #FFF;
+      border-radius: 50%;
+      font-weight: bold;
+    }
+
+    .btn-nav {
+      padding: 6px 14px;
+      border: 1px solid #C2B4A3;
+      background: #FFF;
+      color: var(--text-main);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-today {
+      background-color: #8C7A6B;
+      color: #FFF;
+      border: none;
+    }
+
+    .view-toggle button {
+      padding: 6px 14px;
+      border: 1px solid #C2B4A3;
+      background: #FFF;
+      color: var(--text-main);
+      cursor: pointer;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+
+    .view-toggle button.active {
+      background: #8C7A6B;
+      color: #FFF;
+    }
+
+    /* VISTA DIARIA GRID */
+    .diario-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    @media (min-width: 768px) {
+      .diario-grid { grid-template-columns: 1fr 1fr; }
+      .gala-section { grid-column: 1 / -1; }
+    }
+
+    /* VISTA SEMANAL GRID */
+    .semanal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .dia-card-semanal {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid #D9CBBA;
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+
+    .dia-card-semanal.dia-activo {
+      border: 2px solid #8C7A6B;
+      background: #FFF;
+    }
+
+    .dia-card-header {
+      font-family: var(--font-title);
+      font-size: 1.6rem;
+      border-bottom: 1px solid #D9CBBA;
+      margin-bottom: 10px;
+      color: var(--accent-title);
+    }
+
+    .sub-block {
+      margin-bottom: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+
+    .sub-citas { background-color: var(--card-citas); }
+    .sub-entregas { background-color: var(--card-entregas); }
+    .sub-tareas { background-color: var(--card-tareas); }
+
+    .sub-block h4 { font-size: 0.85rem; margin-bottom: 4px; color: var(--accent-title); }
+
+    .block {
+      padding: 20px;
+      border-radius: 14px;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .block h2 { font-family: var(--font-title); font-size: 2.1rem; margin-bottom: 12px; color: var(--accent-title); }
+    .citas-block { background-color: var(--card-citas); }
+    .entregas-block { background-color: var(--card-entregas); }
+    .tareas-block { background-color: var(--card-tareas); }
+    .gala-block { background-color: var(--card-gala); }
+    .habitos-block { background-color: var(--card-habitos); }
+
+    input[type="text"], input[type="time"], input[type="date"], textarea {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid #D9CBBA;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      background: rgba(255, 255, 255, 0.95);
+      outline: none;
+      color: var(--text-main);
+    }
+
+    button.btn-add {
+      padding: 5px 12px;
+      border: 1px solid #C2B4A3;
+      background-color: #FFFFFF;
+      color: var(--text-main);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .list-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.85rem; }
+    .list-table tr { border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+    .list-table td { padding: 5px 2px; }
+    .completed { text-decoration: line-through; opacity: 0.6; }
+    .btn-del { background: none; border: none; color: #A84242; cursor: pointer; font-weight: bold; }
+
+    .gala-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 600px) { .gala-grid { grid-template-columns: 1fr 1fr; } }
+    .gala-field label { font-size: 0.85rem; font-weight: 700; display: block; margin-bottom: 3px; color: var(--accent-title); }
+
+    .semana-divider { border-top: 1px dashed #C2B4A3; margin: 25px 0; }
+
+    .habitos-table-container { overflow-x: auto; }
+    .habitos-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .habitos-table th, .habitos-table td { padding: 8px; text-align: center; }
+    .habitos-table th { font-size: 0.9rem; border-bottom: 1px solid rgba(0,0,0,0.1); color: var(--accent-title); }
+    .col-destacada { background-color: rgba(140, 122, 107, 0.2); font-weight: bold; border-radius: 6px; }
+    .habitos-table td.habito-nombre { text-align: left; font-weight: 600; }
+    .habitos-table input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #8C7A6B; }
+
+    /* MODALES GENERALES */
+    .modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 100;
+    }
+    .modal-content {
+      background: #F5EFE6; padding: 25px; border-radius: 16px;
+      max-width: 800px; max-height: 85vh; overflow-y: auto; width: 90%; border: 2px solid #D1C5B4;
+    }
+    .anual-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+    .mes-card { border: 1px solid #D9CBBA; border-radius: 10px; padding: 10px; background: #FFF; }
+    .mes-card h4 { text-align: center; margin-bottom: 5px; font-size: 1rem; font-family: var(--font-title); }
+    .mes-table { width: 100%; font-size: 0.75rem; text-align: center; border-collapse: collapse; }
+    .mes-table td { padding: 4px; cursor: pointer; }
+    .mes-table td:hover { background-color: var(--card-citas); border-radius: 50%; }
+
+    /* Estilos para el panel de ajustes */
+    .ajustes-box {
+      background: #FFF;
+      border: 1px solid #D9CBBA;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 15px;
+    }
+    .ajustes-box h3 {
+      font-family: var(--font-title);
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      color: var(--accent-title);
+    }
+    .ajustes-box p {
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+      color: #6E5F54;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="agenda-paper">
+    <header>
+      <h1>Agenda Personal</h1>
+      <div id="fecha-texto" class="fecha-destacada"></div>
+    </header>
+
+    <div class="header-controls">
+      <div>
+        <button class="btn-nav btn-today" onclick="irAHoy()">📍 Hoy</button>
+        <input type="date" id="selector-fecha" onchange="cambiarFecha(this.value)" style="margin-left:5px; margin-bottom:0; width:auto;">
+      </div>
+
+      <div class="mini-calendar" id="contenedor-mini-calendario"></div>
+
+      <div class="view-toggle">
+        <button id="btn-vista-diaria" class="active" onclick="cambiarVistaGeneral('diaria')">Diaria</button>
+        <button id="btn-vista-semanal" onclick="cambiarVistaGeneral('semanal')">Semanal</button>
+      </div>
+
+      <div>
+        <button class="btn-nav" onclick="abrirCalendarioAnual()">📅 Año</button>
+        <button class="btn-nav" onclick="abrirAjustes()" style="margin-left: 4px;">⚙️ Ajustes</button>
+      </div>
+    </div>
+
+    <!-- CONTENEDOR DE VISTA DIARIA -->
+    <div id="vista-diaria-container" class="diario-grid">
+      <section class="block citas-block">
+        <h2>📌 Citas del Día</h2>
+        <div style="display: flex; gap: 5px;">
+          <input type="time" id="cita-hora" style="width: 45%;">
+          <input type="text" id="cita-texto" placeholder="Detalle...">
+        </div>
+        <button class="btn-add" onclick="agregarCita()">Añadir Cita</button>
+        <table class="list-table"><tbody id="tabla-citas"></tbody></table>
+      </section>
+
+      <section class="block entregas-block">
+        <h2>📦 Entregas Pendientes</h2>
+        <input type="text" id="entrega-texto" placeholder="Proyecto...">
+        <button class="btn-add" onclick="agregarEntrega()">Añadir Entrega</button>
+        <table class="list-table"><tbody id="tabla-entregas"></tbody></table>
+      </section>
+
+      <section class="block tareas-block">
+        <h2>✏️ Tareas Diarias</h2>
+        <input type="text" id="tarea-texto" placeholder="Nueva tarea...">
+        <button class="btn-add" onclick="agregarTarea()">Añadir Tarea</button>
+        <table class="list-table"><tbody id="tabla-tareas"></tbody></table>
+      </section>
+
+      <section class="block gala-block gala-section">
+        <h2>✨ Espacio de Gratitud (GALA)</h2>
+        <div class="gala-grid">
+          <div class="gala-field"><label>G - Gratitud</label><textarea id="gala-g" rows="2" oninput="guardarTodo()"></textarea></div>
+          <div class="gala-field"><label>A - Aprendizaje</label><textarea id="gala-a1" rows="2" oninput="guardarTodo()"></textarea></div>
+          <div class="gala-field"><label>L - Logro</label><textarea id="gala-l" rows="2" oninput="guardarTodo()"></textarea></div>
+          <div class="gala-field"><label>A - Alegría</label><textarea id="gala-a2" rows="2" oninput="guardarTodo()"></textarea></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- CONTENEDOR DE VISTA SEMANAL -->
+    <div id="vista-semanal-container" class="semanal-grid" style="display: none;"></div>
+
+    <div class="semana-divider"></div>
+
+    <!-- SECCIÓN ÚNICA DE HÁBITOS SEMANALES -->
+    <section class="block habitos-block">
+      <h2>🌿 Registro de Hábitos Semanal</h2>
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <input type="text" id="habito-texto" placeholder="Añadir nuevo hábito...">
+        <button class="btn-add" onclick="agregarHabito()">Crear Hábito</button>
+      </div>
+
+      <div class="habitos-table-container">
+        <table class="habitos-table">
+          <thead id="cabecera-habitos"></thead>
+          <tbody id="cuerpo-habitos"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL CALENDARIO ANUAL -->
+  <div id="modal-anual" class="modal">
+    <div class="modal-content">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <button class="btn-nav" onclick="cambiarAnoAnual(-1)">◀</button>
+          <h2 id="titulo-ano-modal" style="font-family: var(--font-title); font-size: 2.2rem; color: var(--accent-title);"></h2>
+          <button class="btn-nav" onclick="cambiarAnoAnual(1)">▶</button>
+        </div>
+        <button class="btn-nav" onclick="cerrarCalendarioAnual()">✕ Cerrar</button>
+      </div>
+      <div id="grid-anual" class="anual-grid"></div>
+    </div>
+  </div>
+
+  <!-- MODAL DE AJUSTES Y SEGURIDAD -->
+  <div id="modal-ajustes" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+        <h2 style="font-family: var(--font-title); font-size: 2.2rem; color: var(--accent-title);">Ajustes de la Agenda</h2>
+        <button class="btn-nav" onclick="cerrarAjustes()">✕ Cerrar</button>
+      </div>
+
+      <div class="ajustes-box">
+        <h3>💾 Copia de Seguridad</h3>
+        <p>Descarga un archivo con toda tu información registrada para guardar una copia de respaldo.</p>
+        <button class="btn-nav btn-today" onclick="exportarDatos()">Descargar Copia de Seguridad</button>
+      </div>
+
+      <div class="ajustes-box">
+        <h3>📥 Restaurar Copia</h3>
+        <p>Sube un archivo de copia de seguridad previo para restaurar tus datos guardados.</p>
+        <input type="file" id="input-importar" accept=".json" style="margin-bottom: 10px;">
+        <button class="btn-nav" onclick="importarDatos()">Restaurar Datos</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let fechaActual = new Date().toISOString().split('T')[0];
+    let modoVista = 'diaria';
+    let anoCalendarioModal = new Date().getFullYear();
+
+    let datosAgenda = { citas: [], entregas: [], tareas: [], gala: { g: '', a1: '', l: '', a2: '' } };
+    let habitosGlobales = [];
+
+    const nombresDiasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
+    function getIndiceDiaSemana(fechaStr) {
+      const diaObj = new Date(fechaStr + 'T00:00:00').getDay();
+      return (diaObj === 0) ? 6 : diaObj - 1;
+    }
+
+    function irAHoy() {
+      fechaActual = new Date().toISOString().split('T')[0];
+      modoVista = 'diaria';
+      actualizarInterfazVistas();
+      cambiarFecha(fechaActual);
+    }
+
+    function cambiarVistaGeneral(vista) {
+      modoVista = vista;
+      actualizarInterfazVistas();
+      if (modoVista === 'semanal') renderVistaSemanal();
+      renderHabitos();
+    }
+
+    function actualizarInterfazVistas() {
+      document.getElementById('btn-vista-diaria').classList.toggle('active', modoVista === 'diaria');
+      document.getElementById('btn-vista-semanal').classList.toggle('active', modoVista === 'semanal');
+      document.getElementById('vista-diaria-container').style.display = (modoVista === 'diaria') ? 'grid' : 'none';
+      document.getElementById('vista-semanal-container').style.display = (modoVista === 'semanal') ? 'grid' : 'none';
+    }
+
+    function cambiarFecha(nuevaFecha) {
+      fechaActual = nuevaFecha;
+      document.getElementById('selector-fecha').value = fechaActual;
+      actualizarTextoFecha();
+      cargarTodo();
+      renderMiniCalendario();
+      if (modoVista === 'semanal') renderVistaSemanal();
+    }
+
+    function actualizarTextoFecha() {
+      const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const fechaObj = new Date(fechaActual + 'T00:00:00');
+      document.getElementById('fecha-texto').textContent = fechaObj.toLocaleDateString('es-ES', opciones);
+    }
+
+    function obtenerFechasSemanaActual() {
+      const fechaObj = new Date(fechaActual + 'T00:00:00');
+      const diaSemana = getIndiceDiaSemana(fechaActual);
+      const fechas = [];
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(fechaObj);
+        d.setDate(fechaObj.getDate() - diaSemana + i);
+        fechas.push(d.toISOString().split('T')[0]);
+      }
+      return fechas;
+    }
+
+    function cargarDatosFecha(fStr) {
+      const guardado = localStorage.getItem('agenda_datos_' + fStr);
+      return guardado ? JSON.parse(guardado) : { citas: [], entregas: [], tareas: [], gala: { g: '', a1: '', l: '', a2: '' } };
+    }
+
+    function guardarTodo() {
+      datosAgenda.gala = {
+        g: document.getElementById('gala-g').value,
+        a1: document.getElementById('gala-a1').value,
+        l: document.getElementById('gala-l').value,
+        a2: document.getElementById('gala-a2').value
+      };
+      localStorage.setItem('agenda_datos_' + fechaActual, JSON.stringify(datosAgenda));
+      localStorage.setItem('agenda_habitos_globales', JSON.stringify(habitosGlobales));
+    }
+
+    function cargarTodo() {
+      datosAgenda = cargarDatosFecha(fechaActual);
+
+      const habitosGuardados = localStorage.getItem('agenda_habitos_globales');
+      if (habitosGuardados) habitosGlobales = JSON.parse(habitosGuardados);
+
+      document.getElementById('gala-g').value = datosAgenda.gala.g || '';
+      document.getElementById('gala-a1').value = datosAgenda.gala.a1 || '';
+      document.getElementById('gala-l').value = datosAgenda.gala.l || '';
+      document.getElementById('gala-a2').value = datosAgenda.gala.a2 || '';
+
+      renderCitas();
+      renderEntregas();
+      renderTareas();
+      renderHabitos();
+    }
+
+    function agregarCita() {
+      const hora = document.getElementById('cita-hora').value;
+      const texto = document.getElementById('cita-texto').value.trim();
+      if (!texto) return;
+      datosAgenda.citas.push({ hora, texto });
+      datosAgenda.citas.sort((a, b) => (a.hora || '').localeCompare(b.hora || ''));
+      document.getElementById('cita-hora').value = '';
+      document.getElementById('cita-texto').value = '';
+      guardarTodo();
+      renderCitas();
+    }
+
+    function eliminarCita(index) { datosAgenda.citas.splice(index, 1); guardarTodo(); renderCitas(); }
+
+    function renderCitas() {
+      const tbody = document.getElementById('tabla-citas');
+      tbody.innerHTML = '';
+      datosAgenda.citas.forEach((cita, index) => {
+        tbody.innerHTML += `<tr><td style="width:25%; font-weight:bold;">${cita.hora || '--:--'}</td><td>${cita.texto}</td><td style="text-align:right;"><button class="btn-del" onclick="eliminarCita(${index})">✕</button></td></tr>`;
+      });
+    }
+
+    function agregarEntrega() {
+      const texto = document.getElementById('entrega-texto').value.trim();
+      if (!texto) return;
+      datosAgenda.entregas.push({ texto, done: false });
+      document.getElementById('entrega-texto').value = '';
+      guardarTodo();
+      renderEntregas();
+    }
+
+    function toggleEntrega(index) { datosAgenda.entregas[index].done = !datosAgenda.entregas[index].done; guardarTodo(); renderEntregas(); }
+    function eliminarEntrega(index) { datosAgenda.entregas.splice(index, 1); guardarTodo(); renderEntregas(); }
+
+    function renderEntregas() {
+      const tbody = document.getElementById('tabla-entregas');
+      tbody.innerHTML = '';
+      datosAgenda.entregas.forEach((entrega, index) => {
+        tbody.innerHTML += `<tr><td><input type="checkbox" ${entrega.done ? 'checked' : ''} onchange="toggleEntrega(${index})"></td><td class="${entrega.done ? 'completed' : ''}">${entrega.texto}</td><td style="text-align:right;"><button class="btn-del" onclick="eliminarEntrega(${index})">✕</button></td></tr>`;
+      });
+    }
+
+    function agregarTarea() {
+      const texto = document.getElementById('tarea-texto').value.trim();
+      if (!texto) return;
+      datosAgenda.tareas.push({ texto, done: false });
+      document.getElementById('tarea-texto').value = '';
+      guardarTodo();
+      renderTareas();
+    }
+
+    function toggleTarea(index) { datosAgenda.tareas[index].done = !datosAgenda.tareas[index].done; guardarTodo(); renderTareas(); }
+    function eliminarTarea(index) { datosAgenda.tareas.splice(index, 1); guardarTodo(); renderTareas(); }
+
+    function renderTareas() {
+      const tbody = document.getElementById('tabla-tareas');
+      tbody.innerHTML = '';
+      datosAgenda.tareas.forEach((tarea, index) => {
+        tbody.innerHTML += `<tr><td><input type="checkbox" ${tarea.done ? 'checked' : ''} onchange="toggleTarea(${index})"></td><td class="${tarea.done ? 'completed' : ''}">${tarea.texto}</td><td style="text-align:right;"><button class="btn-del" onclick="eliminarTarea(${index})">✕</button></td></tr>`;
+      });
+    }
+
+    function renderVistaSemanal() {
+      const container = document.getElementById('vista-semanal-container');
+      container.innerHTML = '';
+
+      const fechasSemana = obtenerFechasSemanaActual();
+
+      fechasSemana.forEach((fStr, idx) => {
+        const datosDia = cargarDatosFecha(fStr);
+        const esDiaActivo = (fStr === fechaActual);
+
+        const card = document.createElement('div');
+        card.className = `dia-card-semanal ${esDiaActivo ? 'dia-activo' : ''}`;
+
+        let citasHtml = datosDia.citas.map(c => `<div><b>${c.hora || ''}</b> ${c.texto}</div>`).join('') || '<i>Sin citas</i>';
+        let entregasHtml = datosDia.entregas.map(e => `<div class="${e.done ? 'completed' : ''}">• ${e.texto}</div>`).join('') || '<i>Sin entregas</i>';
+        let tareasHtml = datosDia.tareas.map(t => `<div class="${t.done ? 'completed' : ''}">• ${t.texto}</div>`).join('') || '<i>Sin tareas</i>';
+
+        card.innerHTML = `
+          <div class="dia-card-header">${nombresDiasSemana[idx]} <span style="font-size:0.9rem; font-family:var(--font-main);">(${fStr.split('-')[2]})</span></div>
+          <div class="sub-block sub-citas"><h4>📌 Citas</h4>${citasHtml}</div>
+          <div class="sub-block sub-entregas"><h4>📦 Entregas</h4>${entregasHtml}</div>
+          <div class="sub-block sub-tareas"><h4>✏️ Tareas</h4>${tareasHtml}</div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function agregarHabito() {
+      const texto = document.getElementById('habito-texto').value.trim();
+      if (!texto) return;
+      habitosGlobales.push({ texto, dias: [false, false, false, false, false, false, false] });
+      document.getElementById('habito-texto').value = '';
+      guardarTodo();
+      renderHabitos();
+    }
+
+    function toggleHabitoDia(habitoIndex, diaIndex) {
+      habitosGlobales[habitoIndex].dias[diaIndex] = !habitosGlobales[habitoIndex].dias[diaIndex];
+      guardarTodo();
+      renderHabitos();
+    }
+
+    function eliminarHabito(index) { habitosGlobales.splice(index, 1); guardarTodo(); renderHabitos(); }
+
+    function renderHabitos() {
+      const thead = document.getElementById('cabecera-habitos');
+      const tbody = document.getElementById('cuerpo-habitos');
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+
+      const diaIndexActivo = getIndiceDiaSemana(fechaActual);
+      const diasSiglas = ["L", "M", "X", "J", "V", "S", "D"];
+
+      let headerHtml = `<tr><th style="text-align: left;">Hábito</th>`;
+      diasSiglas.forEach((sigla, idx) => {
+        headerHtml += `<th class="${idx === diaIndexActivo ? 'col-destacada' : ''}">${sigla}</th>`;
+      });
+      headerHtml += `<th></th></tr>`;
+      thead.innerHTML = headerHtml;
+
+      habitosGlobales.forEach((habito, hIndex) => {
+        const tr = document.createElement('tr');
+        let html = `<td class="habito-nombre">${habito.texto}</td>`;
+
+        habito.dias.forEach((marcado, dIndex) => {
+          html += `<td class="${dIndex === diaIndexActivo ? 'col-destacada' : ''}">
+            <input type="checkbox" ${marcado ? 'checked' : ''} onchange="toggleHabitoDia(${hIndex}, ${dIndex})">
+          </td>`;
+        });
+
+        html += `<td><button class="btn-del" onclick="eliminarHabito(${hIndex})">✕</button></td>`;
+        tr.innerHTML = html;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderMiniCalendario() {
+      const contenedor = document.getElementById('contenedor-mini-calendario');
+      const fechaObj = new Date(fechaActual + 'T00:00:00');
+      const año = fechaObj.getFullYear();
+      const mes = fechaObj.getMonth();
+
+      const primerDiaMes = new Date(año, mes, 1).getDay();
+      const diasEnMes = new Date(año, mes + 1, 0).getDate();
+
+      let html = `<table><thead><tr><th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th></tr></thead><tbody><tr>`;
+      let diaSemana = (primerDiaMes === 0) ? 6 : primerDiaMes - 1;
+
+      for (let i = 0; i < diaSemana; i++) html += `<td></td>`;
+
+      for (let dia = 1; dia <= diasEnMes; dia++) {
+        if (diaSemana === 7) { html += `</tr><tr>`; diaSemana = 0; }
+        const fIterada = `${año}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        html += `<td class="${fIterada === fechaActual ? 'selected-day' : ''}" onclick="cambiarFecha('${fIterada}')" style="cursor:pointer;">${dia}</td>`;
+        diaSemana++;
+      }
+      html += `</tr></tbody></table>`;
+      contenedor.innerHTML = html;
+    }
+
+    /* LÓGICA DE NAVEGACIÓN ANUAL */
+    function abrirCalendarioAnual() {
+      anoCalendarioModal = new Date(fechaActual + 'T00:00:00').getFullYear();
+      renderGridAnual();
+      document.getElementById('modal-anual').style.display = 'flex';
+    }
+
+    function cambiarAnoAnual(delta) {
+      anoCalendarioModal += delta;
+      renderGridAnual();
+    }
+
+    function renderGridAnual() {
+      document.getElementById('titulo-ano-modal').textContent = `Calendario ${anoCalendarioModal}`;
+      const grid = document.getElementById('grid-anual');
+      grid.innerHTML = '';
+      const mesesNombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+      for (let m = 0; m < 12; m++) {
+        const mesCard = document.createElement('div');
+        mesCard.className = 'mes-card';
+        let tableHtml = `<h4>${mesesNombres[m]}</h4><table class="mes-table"><thead><tr><th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th></tr></thead><tbody><tr>`;
+
+        const primerDia = new Date(anoCalendarioModal, m, 1).getDay();
+        const totalDias = new Date(anoCalendarioModal, m + 1, 0).getDate();
+        let col = (primerDia === 0) ? 6 : primerDia - 1;
+
+        for (let i = 0; i < col; i++) tableHtml += `<td></td>`;
+
+        for (let d = 1; d <= totalDias; d++) {
+          if (col === 7) { tableHtml += `</tr><tr>`; col = 0; }
+          const fStr = `${anoCalendarioModal}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          tableHtml += `<td onclick="cerrarCalendarioAnual(); cambiarFecha('${fStr}');">${d}</td>`;
+          col++;
+        }
+        tableHtml += `</tr></tbody></table>`;
+        mesCard.innerHTML = tableHtml;
+        grid.appendChild(mesCard);
+      }
+    }
+
+    function cerrarCalendarioAnual() { document.getElementById('modal-anual').style.display = 'none'; }
+
+    /* LÓGICA DE AJUSTES Y SEGURIDAD */
+    function abrirAjustes() { document.getElementById('modal-ajustes').style.display = 'flex'; }
+    function cerrarAjustes() { document.getElementById('modal-ajustes').style.display = 'none'; }
+
+    function exportarDatos() {
+      const todoElStorage = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const clave = localStorage.key(i);
+        if (clave.startsWith('agenda_')) {
+          todoElStorage[clave] = localStorage.getItem(clave);
+        }
+      }
+
+      const blob = new Blob([JSON.stringify(todoElStorage, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Copia_Seguridad_Agenda_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importarDatos() {
+      const fileInput = document.getElementById('input-importar');
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Por favor, selecciona un archivo .json de copia de seguridad.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const datos = JSON.parse(e.target.result);
+          Object.keys(datos).forEach(key => {
+            localStorage.setItem(key, datos[key]);
+          });
+          alert('¡Datos restaurados con éxito!');
+          cerrarAjustes();
+          cargarTodo();
+        } catch (error) {
+          alert('Error al leer el archivo. Asegúrate de que sea un archivo .json válido.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    window.onload = function() {
+      document.getElementById('selector-fecha').value = fechaActual;
+      actualizarTextoFecha();
+      cargarTodo();
+      renderMiniCalendario();
+    };
+  </script>
+
+  <!-- Registro del Service Worker para la PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('Service Worker registrado con éxito'))
+          .catch((err) => console.error('Error al registrar el Service Worker:', err));
+      });
+    }
+  </script>
+</body>
+</html>

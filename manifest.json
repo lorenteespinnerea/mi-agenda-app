@@ -1,0 +1,21 @@
+{
+  "short_name": "Agenda",
+  "name": "Mi Agenda Aesthetic",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#F5EFE6",
+  "theme_color": "#8C7A6B",
+  "display": "standalone",
+  "orientation": "portrait"
+}
