@@ -138,6 +138,7 @@
       color: #FFF;
     }
 
+    /* Distribución de la vista diaria ajustada */
     .diario-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -146,9 +147,16 @@
     }
 
     @media (min-width: 768px) {
-      .diario-grid { grid-template-columns: 1fr 1fr; }
-      .gala-section { grid-column: 1 / -1; }
-      .notas-section { grid-column: 1 / -1; }
+      .diario-grid { 
+        grid-template-columns: 1fr 1fr; 
+        grid-template-rows: auto auto auto;
+      }
+      /* Asignación de posiciones exactas en pantallas grandes */
+      .citas-block { grid-column: 1 / 2; grid-row: 1 / 2; }
+      .entregas-block { grid-column: 2 / 3; grid-row: 1 / 2; }
+      .notas-block { grid-column: 2 / 3; grid-row: 2 / 3; }
+      .tareas-block { grid-column: 1 / 2; grid-row: 2 / 4; }
+      .gala-block { grid-column: 1 / -1; grid-row: 4 / 5; }
     }
 
     .semanal-grid {
@@ -196,11 +204,12 @@
       border: 1px solid rgba(0,0,0,0.04);
     }
 
-    .block h2 { font-family: var(--font-title); font-size: 2.1rem; margin-bottom: 12px; color: var(--accent-title); }
+    .block h2 { font-family: var(--font-title); font-size: 1.8rem; margin-bottom: 12px; color: var(--accent-title); }
     .citas-block { background-color: var(--card-citas); }
     .entregas-block { background-color: var(--card-entregas); }
     .tareas-block { background-color: var(--card-tareas); }
-    .notas-block { background-color: var(--card-notas); }
+    .notas-block { background-color: var(--card-notas); display: flex; flex-direction: column; }
+    .notas-block textarea { resize: none; height: 110px; }
     .gala-block { background-color: var(--card-gala); }
     .habitos-block { background-color: var(--card-habitos); }
 
@@ -319,6 +328,7 @@
       </div>
     </div>
 
+    <!-- Vista Diaria organizada con Notas al lado de Tareas y debajo de Entregas -->
     <div id="vista-diaria-container" class="diario-grid">
       <section class="block citas-block">
         <h2>📌 Citas del Día</h2>
@@ -337,6 +347,11 @@
         <table class="list-table"><tbody id="tabla-entregas"></tbody></table>
       </section>
 
+      <section class="block notas-block">
+        <h2>📝 Notas</h2>
+        <textarea id="notas-texto" placeholder="Escribe notas rápidas aquí..." oninput="guardarTodo()"></textarea>
+      </section>
+
       <section class="block tareas-block">
         <h2>✏️ Tareas Diarias</h2>
         <input type="text" id="tarea-texto" placeholder="Nueva tarea...">
@@ -344,12 +359,7 @@
         <table class="list-table"><tbody id="tabla-tareas"></tbody></table>
       </section>
 
-      <section class="block notas-block notas-section">
-        <h2>📝 Notas Libres</h2>
-        <textarea id="notas-texto" rows="4" placeholder="Escribe aquí notas rápidas, ideas o recordatorios para este día..." oninput="guardarTodo()"></textarea>
-      </section>
-
-      <section class="block gala-block gala-section">
+      <section class="block gala-block">
         <h2>✨ Espacio de Gratitud (GALA)</h2>
         <div class="gala-grid">
           <div class="gala-field"><label>G - Gratitud</label><textarea id="gala-g" rows="2" oninput="guardarTodo()"></textarea></div>
@@ -380,6 +390,7 @@
     </section>
   </main>
 
+  <!-- Modales y Scripts se mantienen intactos -->
   <div id="modal-anual" class="modal">
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center;">
