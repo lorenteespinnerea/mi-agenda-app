@@ -523,10 +523,28 @@
 
     function cargarDatosFecha(fStr) {
       const guardado = localStorage.getItem('agenda_datos_' + fStr);
-      return guardado ? JSON.parse(guardado) : { citas: [], entregas: [], tareas: [], gala: { g: '', a1: '', l: '', a2: '' } };
+      if (guardado) {
+        try {
+          const parsed = JSON.parse(guardado);
+          return {
+            citas: Array.isArray(parsed.citas) ? parsed.citas : [],
+            entregas: Array.isArray(parsed.entregas) ? parsed.entregas : [],
+            tareas: Array.isArray(parsed.tareas) ? parsed.tareas : [],
+            gala: (parsed.gala && typeof parsed.gala === 'object') ? parsed.gala : { g: '', a1: '', l: '', a2: '' }
+          };
+        } catch (e) {
+          console.error("Error al parsear datos locales:", e);
+        }
+      }
+      return { citas: [], entregas: [], tareas: [], gala: { g: '', a1: '', l: '', a2: '' } };
     }
 
     function guardarTodo() {
+      if (!datosAgenda.citas) datosAgenda.citas = [];
+      if (!datosAgenda.entregas) datosAgenda.entregas = [];
+      if (!datosAgenda.tareas) datosAgenda.tareas = [];
+      if (!datosAgenda.gala) datosAgenda.gala = { g: '', a1: '', l: '', a2: '' };
+
       datosAgenda.gala = {
         g: document.getElementById('gala-g').value,
         a1: document.getElementById('gala-a1').value,
@@ -549,7 +567,12 @@
       datosAgenda = cargarDatosFecha(fechaActual);
       const claveSemana = 'agenda_habitos_semana_' + obtenerLunesDeSemana(fechaActual);
       const habitosGuardados = localStorage.getItem(claveSemana);
-      habitosSemanaActual = habitosGuardados ? JSON.parse(habitosGuardados) : [];
+      try {
+        habitosSemanaActual = habitosGuardados ? JSON.parse(habitosGuardados) : [];
+        if (!Array.isArray(habitosSemanaActual)) habitosSemanaActual = [];
+      } catch (e) {
+        habitosSemanaActual = [];
+      }
 
       document.getElementById('gala-g').value = datosAgenda.gala.g || '';
       document.getElementById('gala-a1').value = datosAgenda.gala.a1 || '';
@@ -597,12 +620,13 @@
           cargarTodo();
         }
       }, (error) => {
-        console.warn("Aviso de Firebase (comprueba tus reglas de seguridad):", error);
+        console.warn("Aviso de Firebase:", error);
         if (text) text.textContent = "Error de permisos en la nube";
       });
     }
 
     function agregarCita() {
+      if (!datosAgenda.citas) datosAgenda.citas = [];
       const hora = document.getElementById('cita-hora').value;
       const texto = document.getElementById('cita-texto').value.trim();
       if (!texto) return;
@@ -614,17 +638,24 @@
       renderCitas();
     }
 
-    function eliminarCita(index) { datosAgenda.citas.splice(index, 1); guardarTodo(); renderCitas(); }
+    function eliminarCita(index) { 
+      if (!datosAgenda.citas) return;
+      datosAgenda.citas.splice(index, 1); 
+      guardarTodo(); 
+      renderCitas(); 
+    }
 
     function renderCitas() {
       const tbody = document.getElementById('tabla-citas');
       tbody.innerHTML = '';
+      if (!datosAgenda.citas) datosAgenda.citas = [];
       datosAgenda.citas.forEach((cita, index) => {
         tbody.innerHTML += `<tr><td style="width:25%; font-weight:bold;">${cita.hora || '--:--'}</td><td>${cita.texto}</td><td style="text-align:right;"><button class="btn-del" onclick="eliminarCita(${index})">✕</button></td></tr>`;
       });
     }
 
     function agregarEntrega() {
+      if (!datosAgenda.entregas) datosAgenda.entregas = [];
       const texto = document.getElementById('entrega-texto').value.trim();
       if (!texto) return;
       datosAgenda.entregas.push({ texto, done: false });
@@ -633,18 +664,31 @@
       renderEntregas();
     }
 
-    function toggleEntrega(index) { datosAgenda.entregas[index].done = !datosAgenda.entregas[index].done; guardarTodo(); renderEntregas(); }
-    function eliminarEntrega(index) { datosAgenda.entregas.splice(index, 1); guardarTodo(); renderEntregas(); }
+    function toggleEntrega(index) { 
+      if (!datosAgenda.entregas) datosAgenda.entregas = [];
+      datosAgenda.entregas[index].done = !datosAgenda.entregas[index].done; 
+      guardarTodo(); 
+      renderEntregas(); 
+    }
+
+    function eliminarEntrega(index) { 
+      if (!datosAgenda.entregas) return;
+      datosAgenda.entregas.splice(index, 1); 
+      guardarTodo(); 
+      renderEntregas(); 
+    }
 
     function renderEntregas() {
       const tbody = document.getElementById('tabla-entregas');
       tbody.innerHTML = '';
+      if (!datosAgenda.entregas) datosAgenda.entregas = [];
       datosAgenda.entregas.forEach((entrega, index) => {
         tbody.innerHTML += `<tr><td><input type="checkbox" ${entrega.done ? 'checked' : ''} onchange="toggleEntrega(${index})"></td><td class="${entrega.done ? 'completed' : ''}">${entrega.texto}</td><td style="text-align:right;"><button class="btn-del" onclick="eliminarEntrega(${index})">✕</button></td></tr>`;
       });
     }
 
     function agregarTarea() {
+      if (!datosAgenda.tareas) datosAgenda.tareas = [];
       const texto = document.getElementById('tarea-texto').value.trim();
       if (!texto) return;
       datosAgenda.tareas.push({ texto, done: false });
@@ -653,12 +697,24 @@
       renderTareas();
     }
 
-    function toggleTarea(index) { datosAgenda.tareas[index].done = !datosAgenda.tareas[index].done; guardarTodo(); renderTareas(); }
-    function eliminarTarea(index) { datosAgenda.tareas.splice(index, 1); guardarTodo(); renderTareas(); }
+    function toggleTarea(index) { 
+      if (!datosAgenda.tareas) datosAgenda.tareas = [];
+      datosAgenda.tareas[index].done = !datosAgenda.tareas[index].done; 
+      guardarTodo(); 
+      renderTareas(); 
+    }
+
+    function eliminarTarea(index) { 
+      if (!datosAgenda.tareas) return;
+      datosAgenda.tareas.splice(index, 1); 
+      guardarTodo(); 
+      renderTareas(); 
+    }
 
     function renderTareas() {
       const tbody = document.getElementById('tabla-tareas');
       tbody.innerHTML = '';
+      if (!datosAgenda.tareas) datosAgenda.tareas = [];
       datosAgenda.tareas.forEach((tarea, index) => {
         tbody.innerHTML += `<tr><td><input type="checkbox" ${tarea.done ? 'checked' : ''} onchange="toggleTarea(${index})"></td><td class="${tarea.done ? 'completed' : ''}">${tarea.texto}</td><td style="text-align:right;"><button class="btn-del" onclick="eliminarTarea(${index})">✕</button></td></tr>`;
       });
@@ -676,9 +732,9 @@
         const card = document.createElement('div');
         card.className = `dia-card-semanal ${esDiaActivo ? 'dia-activo' : ''}`;
 
-        let citasHtml = datosDia.citas.map(c => `<div><b>${c.hora || ''}</b> ${c.texto}</div>`).join('') || '<i>Sin citas</i>';
-        let entregasHtml = datosDia.entregas.map(e => `<div class="${e.done ? 'completed' : ''}">• ${e.texto}</div>`).join('') || '<i>Sin entregas</i>';
-        let tareasHtml = datosDia.tareas.map(t => `<div class="${t.done ? 'completed' : ''}">• ${t.texto}</div>`).join('') || '<i>Sin tareas</i>';
+        let citasHtml = (datosDia.citas || []).map(c => `<div><b>${c.hora || ''}</b> ${c.texto}</div>`).join('') || '<i>Sin citas</i>';
+        let entregasHtml = (datosDia.entregas || []).map(e => `<div class="${e.done ? 'completed' : ''}">• ${e.texto}</div>`).join('') || '<i>Sin entregas</i>';
+        let tareasHtml = (datosDia.tareas || []).map(t => `<div class="${t.done ? 'completed' : ''}">• ${t.texto}</div>`).join('') || '<i>Sin tareas</i>';
 
         card.innerHTML = `
           <div class="dia-card-header">${nombresDiasSemana[idx]} <span style="font-size:0.9rem; font-family:var(--font-main);">(${fStr.split('-')[2]})</span></div>
