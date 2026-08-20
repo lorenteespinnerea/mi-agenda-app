@@ -763,7 +763,17 @@
 
     function eliminarHabito(index) {
       habitosSemanaActual.splice(index, 1);
-      guardarTodo();
+      
+      // Forzamos el guardado y la sincronización explícita en la nube para limpiar el array borrado
+      localStorage.setItem('agenda_habitos_semana_' + obtenerLunesDeSemana(fechaActual), JSON.stringify(habitosSemanaActual));
+      
+      const pin = localStorage.getItem('agenda_pin_sync');
+      const claveSemana = 'agenda_habitos_semana_' + obtenerLunesDeSemana(fechaActual);
+      if (db && pin) {
+        db.ref('agendas/' + pin + '/' + claveSemana).set(habitosSemanaActual)
+          .catch(err => console.error("Error al sincronizar hábitos borrados:", err));
+      }
+
       renderHabitos();
     }
 
