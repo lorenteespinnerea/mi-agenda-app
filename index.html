@@ -409,7 +409,18 @@
   </div>
 
   <script>
-    let fechaActual = new Date().toISOString().split('T')[0];
+    /**
+     * Helper para formatear cualquier objeto Date a la cadena 'YYYY-MM-DD' 
+     * en hora local, evitando desfasajes de zona horaria (UTC).
+     */
+    function formatearFechaLocal(date) {
+      const año = date.getFullYear();
+      const mes = String(date.getMonth() + 1).padStart(2, '0');
+      const dia = String(date.getDate()).padStart(2, '0');
+      return `${año}-${mes}-${dia}`;
+    }
+
+    let fechaActual = formatearFechaLocal(new Date());
     let modoVista = 'diaria';
     let anoCalendarioModal = new Date().getFullYear();
 
@@ -424,7 +435,7 @@
     }
 
     function irAHoy() {
-      fechaActual = new Date().toISOString().split('T')[0];
+      fechaActual = formatearFechaLocal(new Date());
       modoVista = 'diaria';
       actualizarInterfazVistas();
       cambiarFecha(fechaActual);
@@ -458,12 +469,12 @@
       const fechaObj = new Date(fechaActual + 'T00:00:00');
       document.getElementById('fecha-texto').textContent = fechaObj.toLocaleDateString('es-ES', opciones);
     }
-/**
+
+    /**
      * Calcula de forma precisa el rango de 7 días (Lunes a Domingo) 
-     * correspondientes a la semana de la fecha seleccionada.
+     * correspondientes a la semana de la fecha seleccionada sin usar UTC.
      */
     function obtenerFechasSemanaActual() {
-      // Creamos la fecha base asegurando el formato local sin desfasaje de zona horaria
       const fechaObj = new Date(fechaActual + 'T00:00:00');
       
       // Obtener el día de la semana (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
@@ -482,7 +493,7 @@
       for (let i = 0; i < 7; i++) {
         const d = new Date(lunes);
         d.setDate(lunes.getDate() + i);
-        fechas.push(d.toISOString().split('T')[0]);
+        fechas.push(formatearFechaLocal(d));
       }
       
       return fechas;
@@ -744,7 +755,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Copia_Seguridad_Agenda_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `Copia_Seguridad_Agenda_${formatearFechaLocal(new Date())}.json`;
       a.click();
       URL.revokeObjectURL(url);
     }
